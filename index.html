@@ -1,726 +1,904 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Luau Obfuscator</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>OPAQ — Lua Obfuscator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0b0f14;
-    --panel: #111820;
-    --panel-2: #0d131a;
-    --border: #22303d;
-    --text: #d7e2ec;
-    --muted: #7d8fa1;
-    --accent: #4cc2ff;
-    --accent-2: #2f9e6e;
-    --danger: #e5534b;
+  :root{
+    --bg: #0a0d0a;
+    --bg2: #0f130f;
+    --panel: #12160f;
+    --line: #263323;
+    --amber: #ffb020;
+    --amber-dim: #7a5a18;
+    --green: #7ee081;
+    --green-dim: #3a5a3c;
+    --text: #d9e0d3;
+    --text-dim: #7f8c78;
+    --danger: #ff6b5e;
+    --radius: 3px;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
-  * { box-sizing: border-box; }
-  html, body { height: 100%; }
-  body {
-    margin: 0;
-    background: radial-gradient(1200px 600px at 20% -10%, #16222e 0%, var(--bg) 60%);
+  *{box-sizing:border-box;}
+  html{scroll-padding-top: env(safe-area-inset-top, 0px);}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background: var(--bg);
+    background-image:
+      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(126,224,129,0.06), transparent 60%),
+      radial-gradient(ellipse 700px 400px at 100% 10%, rgba(255,176,32,0.05), transparent 60%);
     color: var(--text);
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    font-size: 14px;
-    line-height: 1.5;
+    font-family: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
-  .wrap { max-width: 1200px; margin: 0 auto; padding: 28px 20px 60px; }
-  header h1 {
-    margin: 0 0 4px;
-    font-size: 24px;
-    letter-spacing: -0.02em;
-  }
-  header h1 span { color: var(--accent); }
-  header p { margin: 0 0 22px; color: var(--muted); }
+  .mono{ font-family:'IBM Plex Mono', ui-monospace, 'SFMono-Regular', monospace; }
 
-  .toolbar {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    align-items: center;
-    margin-bottom: 16px;
+  /* ---------- header ---------- */
+  header{
+    border-bottom: 1px solid var(--line);
+    padding: 18px 28px;
+    display:flex; align-items:center; justify-content:space-between;
+    gap: 16px; flex-wrap: wrap;
+    position: sticky; top: env(safe-area-inset-top, 0px); background: rgba(10,13,10,0.92);
+    backdrop-filter: blur(6px);
+    z-index: 20;
   }
-  button {
-    font: inherit;
-    font-weight: 600;
-    padding: 9px 16px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: #1a232d;
-    color: var(--text);
-    cursor: pointer;
-    transition: background .12s, border-color .12s, transform .05s;
+  .brand{ display:flex; align-items:baseline; gap:10px; }
+  .brand .mark{
+    font-family:'IBM Plex Mono';
+    font-weight:700; font-size:20px; letter-spacing:0.02em;
+    color: var(--bg);
+    background: linear-gradient(135deg, var(--green), var(--amber));
+    padding: 3px 9px;
+    border-radius: var(--radius);
   }
-  button:hover:not(:disabled) { background: #223040; border-color: #31465a; }
-  button:active:not(:disabled) { transform: translateY(1px); }
-  button:disabled { opacity: .45; cursor: not-allowed; }
-  button.primary { background: var(--accent); border-color: var(--accent); color: #04141f; }
-  button.primary:hover:not(:disabled) { background: #6fd0ff; border-color: #6fd0ff; }
-  button.good { background: var(--accent-2); border-color: var(--accent-2); color: #04170e; }
-  button.good:hover:not(:disabled) { background: #3cbb85; border-color: #3cbb85; }
+  .brand .name{ font-family:'IBM Plex Mono'; font-weight:600; font-size:15px; color:var(--text); letter-spacing:0.03em; }
+  .brand .tag{ color: var(--text-dim); font-size:13px; }
+  .headline-links{ display:flex; gap:20px; font-size:13px; color:var(--text-dim); }
+  .headline-links span{ color: var(--green); }
 
-  .grid {
-    display: grid;
+  /* ---------- layout ---------- */
+  main{
+    max-width: 1360px;
+    margin: 0 auto;
+    padding: 30px 28px 80px;
+  }
+  .intro{ max-width: 760px; margin-bottom: 28px; }
+  .intro h1{
+    font-family:'IBM Plex Mono';
+    font-size: clamp(26px, 3.4vw, 38px);
+    line-height: 1.15;
+    margin: 0 0 12px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .intro h1 .accent{ color: var(--amber); }
+  .intro p{ color: var(--text-dim); font-size: 14.5px; line-height:1.6; margin:0; }
+
+  .grid{
+    display:grid;
     grid-template-columns: 1fr 1fr;
     gap: 18px;
+    align-items: start;
   }
-  @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+  @media (max-width: 900px){ .grid{ grid-template-columns: 1fr; } }
 
-  .panel {
+  .panel{
     background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 14px;
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
   }
-  .panel h2 {
-    margin: 0 0 10px;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: .09em;
-    color: var(--muted);
-    font-weight: 700;
+  .panel-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg2);
   }
+  .panel-head .lbl{ font-family:'IBM Plex Mono'; font-size:12px; letter-spacing:0.08em; color: var(--text-dim); }
+  .dot-row{ display:flex; gap:6px; }
+  .dot-row i{ width:8px; height:8px; border-radius:50%; display:inline-block; background: var(--line); }
 
-  .drop {
-    border: 1.5px dashed #2b3d4e;
-    border-radius: 9px;
-    padding: 10px 12px;
-    margin-bottom: 10px;
-    color: var(--muted);
-    font-size: 13px;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color .15s, background .15s, color .15s;
-    user-select: none;
-  }
-  .drop:hover, .drop.over { border-color: var(--accent); color: var(--accent); background: rgba(76,194,255,.06); }
-  .drop strong { color: var(--text); font-weight: 600; }
-  .drop.over strong { color: var(--accent); }
-
-  textarea {
-    width: 100%;
-    flex: 1;
-    min-height: 360px;
+  textarea{
+    width:100%; height: 420px;
     resize: vertical;
-    background: var(--panel-2);
+    background: var(--bg);
     color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: 9px;
-    padding: 12px;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
-    font-size: 12.5px;
+    border: none;
+    padding: 14px;
+    font-family:'IBM Plex Mono';
+    font-size: 13px;
     line-height: 1.55;
+    outline: none;
     tab-size: 2;
-    outline: none;
-    white-space: pre;
-    overflow: auto;
   }
-  textarea:focus { border-color: #35506a; }
-  textarea[readonly] { color: #a9c4da; }
+  textarea::placeholder{ color: #4a5545; }
+  textarea[readonly]{ color: var(--green); }
 
-  .options {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 14px;
-    margin: 16px 0 0;
-    padding: 12px 14px;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 12px;
+  .panel-foot{
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 8px 14px;
+    border-top: 1px solid var(--line);
+    background: var(--bg2);
+    font-size: 12px; color: var(--text-dim);
+    flex-wrap: wrap; gap: 8px;
   }
-  .options label {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    color: var(--muted);
-    font-size: 13px;
-    cursor: pointer;
-    user-select: none;
-  }
-  .options label:hover { color: var(--text); }
-  .options input { accent-color: var(--accent); width: 15px; height: 15px; cursor: pointer; }
+  .btn-row{ display:flex; gap:8px; flex-wrap:wrap; }
 
-  .status {
-    margin-top: 12px;
-    font-size: 13px;
-    color: var(--muted);
-    min-height: 20px;
-    font-family: ui-monospace, Menlo, Consolas, monospace;
-  }
-  .status.err { color: var(--danger); }
-  .status.ok { color: #56d364; }
-
-  .filename {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 10px;
-    font-size: 13px;
-    color: var(--muted);
-  }
-  .filename input {
-    flex: 1;
-    min-width: 0;
-    background: var(--panel-2);
-    border: 1px solid var(--border);
-    border-radius: 7px;
+  button{
+    font-family:'IBM Plex Mono';
+    font-size: 12.5px;
+    border: 1px solid var(--line);
+    background: var(--bg2);
     color: var(--text);
-    padding: 7px 10px;
-    font: inherit;
-    font-size: 13px;
-    outline: none;
+    padding: 7px 12px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: border-color .15s, color .15s;
   }
-  .filename input:focus { border-color: #35506a; }
+  button:hover{ border-color: var(--green-dim); color: var(--green); }
+  button:disabled{ opacity:0.4; cursor:not-allowed; }
+  button.primary{
+    background: var(--green);
+    color: #08120a;
+    border-color: var(--green);
+    font-weight: 600;
+  }
+  button.primary:hover{ background: #93ef95; color:#08120a; }
+  button.ghost{ background: transparent; }
 
-  footer { margin-top: 26px; color: #55697c; font-size: 12px; }
+  /* ---------- options ---------- */
+  .options{
+    margin-top: 20px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+  }
+  .options h2{
+    font-family:'IBM Plex Mono'; font-size: 13px; letter-spacing:0.08em;
+    color: var(--text-dim); margin: 0 0 14px; font-weight:600;
+  }
+  .opt-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 12px 20px;
+  }
+  .opt{
+    display:flex; align-items:flex-start; gap:10px;
+    padding: 10px;
+    border: 1px solid transparent;
+    border-radius: var(--radius);
+  }
+  .opt:hover{ border-color: var(--line); background: rgba(126,224,129,0.02); }
+  .opt input[type=checkbox]{
+    appearance:none; width:16px; height:16px; margin-top:2px; flex:none;
+    border:1px solid var(--text-dim); border-radius:3px; cursor:pointer;
+    background: var(--bg);
+    position: relative;
+  }
+  .opt input[type=checkbox]:checked{ background: var(--green); border-color: var(--green); }
+  .opt input[type=checkbox]:checked::after{
+    content:''; position:absolute; left:4px; top:1px; width:4px; height:8px;
+    border: solid #08120a; border-width: 0 2px 2px 0; transform: rotate(45deg);
+  }
+  .opt label{ cursor:pointer; }
+  .opt .t{ font-size: 13.5px; font-weight:500; color: var(--text); display:block; }
+  .opt .d{ font-size: 12px; color: var(--text-dim); margin-top:2px; line-height:1.4; }
+
+  .sub-row{ margin-top:14px; display:flex; gap:18px; flex-wrap:wrap; align-items:center; }
+  .sub-row .grp{ display:flex; align-items:center; gap:8px; font-size:13px; color: var(--text-dim); }
+  select{
+    font-family:'IBM Plex Mono'; font-size: 12.5px;
+    background: var(--bg); color: var(--text);
+    border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 5px 8px;
+  }
+
+  .run-row{
+    margin-top: 20px;
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+  }
+  .run-row button.primary{ font-size:14px; padding: 11px 22px; }
+  .warn{
+    font-size: 12.5px; color: var(--text-dim);
+    border-left: 2px solid var(--amber-dim);
+    padding-left: 10px;
+  }
+  .warn b{ color: var(--amber); font-weight:600; }
+
+  .stats{
+    margin-top: 20px;
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px,1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow:hidden;
+  }
+  .stat{ background: var(--panel); padding: 14px 16px; }
+  .stat .v{ font-family:'IBM Plex Mono'; font-size: 20px; color: var(--green); font-weight:700; }
+  .stat .k{ font-size: 11.5px; color: var(--text-dim); margin-top:2px; letter-spacing:0.03em; }
+
+  .toast{
+    position: fixed; bottom: calc(24px + env(safe-area-inset-bottom,0px)); left:50%; transform:translateX(-50%) translateY(20px);
+    background: var(--green); color:#08120a; font-family:'IBM Plex Mono'; font-size:13px; font-weight:600;
+    padding: 10px 18px; border-radius: var(--radius); opacity:0; pointer-events:none;
+    transition: opacity .2s, transform .2s; z-index: 50;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  footer{
+    text-align:center; padding: 30px 20px 40px; color: var(--text-dim); font-size:12px;
+  }
 </style>
 </head>
 <body>
-<div class="wrap">
 
-  <header>
-    <h1>Luau <span>Obfuscator</span></h1>
-    <p>Paste Lua / Luau source or drop a <code>.lua</code> / <code>.txt</code> file, then download the obfuscated result. Everything runs locally in your browser — nothing is uploaded.</p>
-  </header>
+<header>
+  <div class="brand">
+    <span class="mark">λ</span>
+    <span class="name">OPAQ</span>
+    <span class="tag mono">// lua source obfuscator</span>
+  </div>
+  <div class="headline-links mono">
+    <div><span>●</span> local, client-side, nothing leaves your browser</div>
+  </div>
+</header>
 
-  <div class="toolbar">
-    <button id="runBtn" class="primary">⚙ Obfuscate</button>
-    <button id="downloadBtn" class="good" disabled>⬇ Download .lua</button>
-    <button id="copyBtn" disabled>⧉ Copy output</button>
-    <button id="clearBtn">✕ Clear</button>
-    <span class="status" id="status"></span>
+<main>
+  <div class="intro">
+    <h1>Turn readable Lua into <span class="accent">something a reverse&#8209;engineer hates.</span></h1>
+    <p>Paste a script, pick your layers, and get back a renamed, string&#8209;encrypted, number&#8209;mangled, junk&#8209;padded build — wrapped in an encoded bootstrap loader in the style of commercial obfuscators like Luraph. Runs entirely in this tab.</p>
   </div>
 
-  <div class="options">
-    <label><input type="checkbox" id="optRename" checked> Rename locals</label>
-    <label><input type="checkbox" id="optStrings" checked> Encode strings</label>
-    <label><input type="checkbox" id="optNumbers" checked> Encode numbers</label>
-    <label><input type="checkbox" id="optComments" checked> Strip comments</label>
-    <label><input type="checkbox" id="optJunk" checked> Insert junk</label>
-  </div>
-
-  <div class="grid" style="margin-top:18px">
-
-    <div class="panel" id="inputPanel">
-      <h2>Input</h2>
-      <div class="drop" id="drop">
-        <strong>Click to choose a file</strong> or drag &amp; drop it here
-        <input type="file" id="fileInput" accept=".lua,.luau,.txt,text/plain" hidden>
+  <div class="grid">
+    <div class="panel">
+      <div class="panel-head">
+        <span class="lbl mono">INPUT.LUA</span>
+        <div class="dot-row"><i></i><i></i><i></i></div>
       </div>
-      <textarea id="input" spellcheck="false" placeholder="-- paste your Luau code here
+      <textarea id="inputArea" placeholder="-- paste your Lua / Luau script here
 local function greet(name)
-    print(&quot;Hello, &quot; .. name .. &quot;!&quot;)
+    print('Hello, ' .. name)
 end
-greet(&quot;world&quot;)"></textarea>
+
+greet('world')"></textarea>
+      <div class="panel-foot">
+        <span id="inStats">0 chars · 0 lines</span>
+        <div class="btn-row">
+          <button id="loadSample" class="ghost">Load sample</button>
+          <button id="clearInput" class="ghost">Clear</button>
+        </div>
+      </div>
     </div>
 
     <div class="panel">
-      <h2>Output</h2>
-      <div class="filename">
-        <span>File name:</span>
-        <input type="text" id="outName" value="obfuscated.lua" spellcheck="false">
+      <div class="panel-head">
+        <span class="lbl mono">OUTPUT.LUA</span>
+        <div class="dot-row"><i></i><i></i><i></i></div>
       </div>
-      <textarea id="output" spellcheck="false" readonly placeholder="Obfuscated code will appear here…"></textarea>
+      <textarea id="outputArea" readonly placeholder="// obfuscated output will appear here"></textarea>
+      <div class="panel-foot">
+        <span id="outStats">—</span>
+        <div class="btn-row">
+          <button id="copyBtn" disabled>Copy</button>
+          <button id="downloadBtn" disabled>Download .lua</button>
+        </div>
+      </div>
     </div>
-
   </div>
 
-  <footer>
-    Best-effort, regex-based transformation — always syntax-check the output before using it.
-  </footer>
+  <div class="options">
+    <h2>OBFUSCATION LAYERS</h2>
+    <div class="opt-grid">
+      <div class="opt">
+        <input type="checkbox" id="optRename" checked>
+        <label for="optRename">
+          <span class="t">Identifier renaming</span>
+          <span class="d">Local variables, function params & local functions get renamed to confusing tokens. Globals, fields and API names are left untouched.</span>
+        </label>
+      </div>
+      <div class="opt">
+        <input type="checkbox" id="optStrings" checked>
+        <label for="optStrings">
+          <span class="t">String encryption</span>
+          <span class="d">Every string literal is XOR-encrypted into a byte array and rebuilt at runtime through an injected decoder function.</span>
+        </label>
+      </div>
+      <div class="opt">
+        <input type="checkbox" id="optNumbers" checked>
+        <label for="optNumbers">
+          <span class="t">Number mangling</span>
+          <span class="d">Integer literals are replaced with equivalent arithmetic or bit32.bxor expressions that evaluate to the same value.</span>
+        </label>
+      </div>
+      <div class="opt">
+        <input type="checkbox" id="optJunk" checked>
+        <label for="optJunk">
+          <span class="t">Dead code injection</span>
+          <span class="d">Harmless no-op statements, unreachable branches and throwaway locals scattered through every block.</span>
+        </label>
+      </div>
+      <div class="opt">
+        <input type="checkbox" id="optComments" checked>
+        <label for="optComments">
+          <span class="t">Strip comments & whitespace</span>
+          <span class="d">Removes all comments and collapses formatting so nothing but logic remains.</span>
+        </label>
+      </div>
+      <div class="opt">
+        <input type="checkbox" id="optLoader" checked>
+        <label for="optLoader">
+          <span class="t">Encoded bootstrap loader</span>
+          <span class="d">Packs the entire transformed script into a rotating-key byte array and emits a tiny stub that decodes and load()s it at runtime — the core trick behind Luraph-style tools.</span>
+        </label>
+      </div>
+    </div>
 
-</div>
+    <div class="sub-row">
+      <div class="grp">
+        <span class="mono">naming style</span>
+        <select id="nameStyle">
+          <option value="confusing" selected>confusing (Il1lI1)</option>
+          <option value="hex">hex (_0x1a2b)</option>
+        </select>
+      </div>
+      <div class="grp">
+        <span class="mono">junk density</span>
+        <select id="junkDensity">
+          <option value="0.25">low</option>
+          <option value="0.5" selected>medium</option>
+          <option value="0.85">high</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="run-row">
+    <button class="primary" id="runBtn">Obfuscate script</button>
+    <span class="warn">This uses heuristic, parser-light transforms — not a full AST/scope resolver. <b>Always test the output</b> before shipping it; scripts with unusual shadowing or goto labels may need manual review.</span>
+  </div>
+
+  <div class="stats" id="statsPanel" style="display:none;">
+    <div class="stat"><div class="v" id="statOrig">0 B</div><div class="k">ORIGINAL SIZE</div></div>
+    <div class="stat"><div class="v" id="statOut">0 B</div><div class="k">OUTPUT SIZE</div></div>
+    <div class="stat"><div class="v" id="statNames">0</div><div class="k">IDENTIFIERS RENAMED</div></div>
+    <div class="stat"><div class="v" id="statStrings">0</div><div class="k">STRINGS ENCRYPTED</div></div>
+    <div class="stat"><div class="v" id="statNums">0</div><div class="k">NUMBERS MANGLED</div></div>
+    <div class="stat"><div class="v" id="statTime">0ms</div><div class="k">BUILD TIME</div></div>
+  </div>
+</main>
+
+<footer class="mono">runs 100% client-side · no script is ever uploaded anywhere</footer>
+<div class="toast" id="toast">Copied to clipboard</div>
 
 <script>
-"use strict";
-
 /* =========================================================================
-   Tokenizer
+   OPAQ — Lua source obfuscator engine
+   Tokenizer -> transform passes -> safe re-emitter -> optional loader wrap
    ========================================================================= */
 
-const KEYWORDS = new Set([
-  "and","break","do","else","elseif","end","false","for",
-  "function","if","in","local","nil","not","or","repeat",
-  "return","then","true","until","while",
-  "continue","export","type","typeof"
-]);
+const KEYWORDS = new Set(["and","break","do","else","elseif","end","false","for","function","goto","if","in","local","nil","not","or","repeat","return","then","true","until","while"]);
 
-const PROTECTED = new Set([...KEYWORDS,
-  "self","_G","_VERSION",
-  "print","warn","error","assert","pcall","xpcall","select",
-  "type","typeof","tostring","tonumber","pairs","ipairs","next",
-  "rawget","rawset","rawequal","rawlen","setmetatable","getmetatable",
-  "unpack","require","collectgarbage","loadstring","load",
-  "string","table","math","os","coroutine","bit32","utf8","debug",
-  "task","wait","spawn","delay","tick","elapsedTime",
-  "game","workspace","script","shared","plugin",
-  "Instance","Vector2","Vector3","CFrame","Color3","UDim","UDim2",
-  "Enum","Ray","Region3","BrickColor","TweenInfo","NumberSequence",
-  "ColorSequence","NumberRange","Random","PhysicalProperties"
-]);
+function isDigit(c){ return c>='0'&&c<='9'; }
+function isAlpha(c){ return !!c && /[A-Za-z_]/.test(c); }
+function isAlnum(c){ return !!c && /[A-Za-z0-9_]/.test(c); }
 
-const TOKEN_SPEC = [
-  ["LONGCOMMENT", String.raw`--\[(?<lc_eq>=*)\[[\s\S]*?\]\k<lc_eq>\]`],
-  ["LINECOMMENT", String.raw`--[^\n]*`],
-  ["LONGSTRING",  String.raw`\[(?<ls_eq>=*)\[[\s\S]*?\]\k<ls_eq>\]`],
-  ["STRING",      String.raw`"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'`],
-  ["NUMBER",      String.raw`0[xX][0-9a-fA-F]+|\d+\.\d+(?:[eE][+-]?\d+)?|\d+(?:[eE][+-]?\d+)?`],
-  ["IDENT",       String.raw`[A-Za-z_][A-Za-z0-9_]*`],
-  ["NEWLINE",     String.raw`\n`],
-  ["WS",          String.raw`[ \t]+`],
-  ["OTHER",       String.raw`.`]
-];
-
-const TOKEN_NAMES = TOKEN_SPEC.map(t => t[0]);
-
-const MASTER_RE = new RegExp(
-  TOKEN_SPEC.map(([name, pat]) => `(?<${name}>${pat})`).join("|"),
-  "gs"
-);
-
-function tokenize(src) {
-  const tokens = [];
-  MASTER_RE.lastIndex = 0;
-  let m;
-  while ((m = MASTER_RE.exec(src)) !== null) {
-    if (m[0] === "") { MASTER_RE.lastIndex++; continue; }
-
-    let kind = null;
-    for (const n of TOKEN_NAMES) {
-      if (m.groups[n] !== undefined) { kind = n; break; }
+function tokenize(src){
+  let i=0, n=src.length;
+  const tokens=[];
+  const peek=(o=0)=>src[i+o];
+  while(i<n){
+    const c=src[i];
+    if(/\s/.test(c)){ i++; continue; }
+    if(c==='-'&&peek(1)==='-'){
+      i+=2;
+      if(src[i]==='['){
+        let j=i+1, level=0;
+        while(src[j]==='='){level++;j++;}
+        if(src[j]==='['){
+          i=j+1;
+          const closeStr=']'+'='.repeat(level)+']';
+          const end=src.indexOf(closeStr,i);
+          i = end===-1 ? n : end+closeStr.length;
+          continue;
+        }
+      }
+      while(i<n && src[i]!=='\n') i++;
+      continue;
     }
-    let value = m[0];
-    if (kind === "IDENT" && KEYWORDS.has(value)) kind = "KEYWORD";
-    tokens.push([kind, value]);
+    if(c==='['&&(peek(1)==='['||peek(1)==='=')){
+      let j=i+1, level=0;
+      while(src[j]==='='){level++;j++;}
+      if(src[j]==='['){
+        let start=j+1;
+        if(src[start]==='\n') start++;
+        const closeStr=']'+'='.repeat(level)+']';
+        const end=src.indexOf(closeStr,start);
+        const endPos = end===-1 ? n : end+closeStr.length;
+        const content = src.slice(start, end===-1? n : end);
+        tokens.push({type:'LONGSTRING', value:content, level});
+        i=endPos;
+        continue;
+      }
+    }
+    if(c==='"'||c==="'"){
+      const quote=c; let j=i+1; let buf='';
+      while(j<n && src[j]!==quote){
+        if(src[j]==='\\'){ buf+=src[j]+(src[j+1]||''); j+=2; continue; }
+        buf+=src[j]; j++;
+      }
+      j++;
+      tokens.push({type:'STRING', value:buf, quote});
+      i=j;
+      continue;
+    }
+    if(isDigit(c) || (c==='.'&&isDigit(peek(1)))){
+      let j=i;
+      if(c==='0'&&(peek(1)==='x'||peek(1)==='X')){
+        j=i+2;
+        while(j<n&&/[0-9a-fA-F]/.test(src[j])) j++;
+      } else {
+        while(j<n&&isDigit(src[j])) j++;
+        if(src[j]==='.'){ j++; while(j<n&&isDigit(src[j])) j++; }
+        if(src[j]==='e'||src[j]==='E'){ j++; if(src[j]==='+'||src[j]==='-') j++; while(j<n&&isDigit(src[j])) j++; }
+      }
+      tokens.push({type:'NUMBER', value:src.slice(i,j)});
+      i=j;
+      continue;
+    }
+    if(isAlpha(c)){
+      let j=i;
+      while(j<n&&isAlnum(src[j])) j++;
+      const word=src.slice(i,j);
+      tokens.push({type: KEYWORDS.has(word)?'KEYWORD':'NAME', value:word});
+      i=j;
+      continue;
+    }
+    const three=src.slice(i,i+3);
+    if(three==='...'){ tokens.push({type:'OP', value:'...'}); i+=3; continue; }
+    const two=src.slice(i,i+2);
+    if(['==','~=','<=','>=','..','::'].includes(two)){ tokens.push({type:'OP', value:two}); i+=2; continue; }
+    tokens.push({type:'PUNCT', value:c});
+    i++;
   }
+  tokens.push({type:'EOF', value:''});
   return tokens;
 }
 
-/* =========================================================================
-   Lua string literal decoding
-   ========================================================================= */
+const PROTECTED = new Set([
+  "self","print","pairs","ipairs","next","type","tostring","tonumber","pcall","xpcall",
+  "error","assert","select","unpack","table","string","math","os","io","coroutine","debug",
+  "game","workspace","script","wait","spawn","delay","tick","Instance","Vector3","Vector2","CFrame",
+  "Color3","UDim2","UDim","task","require","_G","_VERSION","getfenv","setfenv","rawget","rawset",
+  "rawequal","rawlen","setmetatable","getmetatable","loadstring","load","dofile","collectgarbage",
+  "bit32","utf8","shared","warn","Enum","typeof","newproxy"
+]);
 
-const ESCAPES = {
-  n: "\n", t: "\t", r: "\r", a: "\x07", b: "\b",
-  f: "\f", v: "\v", "\\": "\\", '"': '"', "'": "'", "\n": "\n"
-};
+function randToken(len, style){
+  if(style==='hex'){
+    let s='_0x'; for(let i=0;i<6;i++) s += Math.floor(Math.random()*16).toString(16);
+    return s;
+  }
+  const chars=['I','l','1'];
+  let s='_';
+  for(let i=0;i<len;i++) s+=chars[Math.floor(Math.random()*chars.length)];
+  return s;
+}
+function makeNameGen(style){
+  const used = new Set();
+  return function(){
+    let n;
+    do { n = randToken(9+Math.floor(Math.random()*5), style); } while(used.has(n));
+    used.add(n);
+    return n;
+  };
+}
 
-function isDigit(c) { return c >= "0" && c <= "9"; }
-
-function unescapeLuaString(literal) {
-  const body = literal.slice(1, -1);
-  let out = "";
-  let i = 0;
-  const n = body.length;
-
-  while (i < n) {
-    const c = body[i];
-    if (c === "\\") {
-      if (i + 1 >= n) return null;
-      const nxt = body[i + 1];
-
-      if (isDigit(nxt)) {
-        let j = i + 1, digits = "";
-        while (j < n && isDigit(body[j]) && digits.length < 3) {
-          digits += body[j];
+function collectLocalNames(tokens){
+  const names = new Set();
+  for(let idx=0; idx<tokens.length; idx++){
+    const t = tokens[idx];
+    if(t.type==='KEYWORD' && t.value==='local'){
+      let j=idx+1;
+      if(tokens[j] && tokens[j].type==='KEYWORD' && tokens[j].value==='function'){
+        j++;
+        if(tokens[j] && tokens[j].type==='NAME') names.add(tokens[j].value);
+        continue;
+      }
+      while(tokens[j] && tokens[j].type==='NAME'){
+        names.add(tokens[j].value);
+        j++;
+        if(tokens[j] && tokens[j].type==='PUNCT' && tokens[j].value===','){ j++; continue; }
+        else break;
+      }
+    }
+    if(t.type==='KEYWORD' && t.value==='function'){
+      let j=idx+1;
+      let guard=0;
+      while(tokens[j] && !(tokens[j].type==='PUNCT'&&tokens[j].value==='(') && guard<10){ j++; guard++; }
+      if(tokens[j] && tokens[j].value==='('){
+        j++;
+        while(tokens[j] && !(tokens[j].type==='PUNCT'&&tokens[j].value===')')){
+          if(tokens[j].type==='NAME') names.add(tokens[j].value);
           j++;
         }
-        out += String.fromCharCode(parseInt(digits, 10) % 256);
-        i = j;
-        continue;
       }
-
-      if (nxt === "x" && i + 3 < n) {
-        const hex = body.slice(i + 2, i + 4);
-        if (/^[0-9a-fA-F]{2}$/.test(hex)) {
-          out += String.fromCharCode(parseInt(hex, 16));
-          i += 4;
-          continue;
-        }
-        return null;
-      }
-
-      if (Object.prototype.hasOwnProperty.call(ESCAPES, nxt)) {
-        out += ESCAPES[nxt];
-        i += 2;
-        continue;
-      }
-      return null; // unknown escape — don't risk mangling it
     }
-    out += c;
-    i++;
+  }
+  for(const p of PROTECTED) names.delete(p);
+  names.delete('self');
+  return names;
+}
+
+function renamePass(tokens, style){
+  const localNames = collectLocalNames(tokens);
+  const gen = makeNameGen(style);
+  const map = new Map();
+  for(const nm of localNames) map.set(nm, gen());
+
+  // track bracket context so we only skip renaming a NAME when it's genuinely
+  // a table-constructor key ({ name = value }), not just adjacent to ',' or '='
+  const stack = [];
+  for(let idx=0; idx<tokens.length; idx++){
+    const t = tokens[idx];
+    if(t.type==='PUNCT'){
+      if(t.value==='('||t.value==='{'||t.value==='[') stack.push(t.value);
+      else if(t.value===')'||t.value==='}'||t.value===']') stack.pop();
+    }
+    if(t.type==='NAME' && map.has(t.value)){
+      const prev = tokens[idx-1];
+      const next = tokens[idx+1];
+      if(prev && prev.type==='PUNCT' && (prev.value==='.'||prev.value===':')) continue; // field/method access
+      const inTableCtor = stack.length>0 && stack[stack.length-1]==='{';
+      if(inTableCtor && next && next.type==='PUNCT' && next.value==='='){
+        continue; // table constructor key: { name = value }
+      }
+      t.value = map.get(t.value);
+    }
+  }
+  return map.size;
+}
+
+function unescapeLuaString(raw){
+  let out=[];
+  for(let i=0;i<raw.length;i++){
+    const c=raw[i];
+    if(c==='\\'){
+      const nx=raw[i+1];
+      if(nx==='n'){ out.push(10); i++; }
+      else if(nx==='t'){ out.push(9); i++; }
+      else if(nx==='r'){ out.push(13); i++; }
+      else if(nx==='a'){ out.push(7); i++; }
+      else if(nx==='b'){ out.push(8); i++; }
+      else if(nx==='f'){ out.push(12); i++; }
+      else if(nx==='v'){ out.push(11); i++; }
+      else if(nx==='\\'){ out.push(92); i++; }
+      else if(nx==='"'){ out.push(34); i++; }
+      else if(nx==="'"){ out.push(39); i++; }
+      else if(nx==='\n'){ out.push(10); i++; }
+      else if(nx==='x'){
+        const hex = raw.substr(i+2,2);
+        out.push(parseInt(hex,16)||0); i+=3;
+      } else if(nx>='0'&&nx<='9'){
+        let j=i+1, digs='';
+        while(j<raw.length && digs.length<3 && raw[j]>='0'&&raw[j]<='9'){ digs+=raw[j]; j++; }
+        out.push(parseInt(digs,10)); i=j-1;
+      } else { out.push((nx||'').charCodeAt(0)||0); i++; }
+    } else {
+      out.push(c.charCodeAt(0) & 0xFF);
+    }
   }
   return out;
 }
 
-/* =========================================================================
-   Name generation
-   ========================================================================= */
-
-const ALPHABET = "abcdefghijklmnopqrstuvwxyz";
-const usedNames = new Set();
-
-function newName(prefix = "_") {
-  for (;;) {
-    let cand = prefix;
-    for (let i = 0; i < 6; i++) {
-      cand += ALPHABET[(Math.random() * 26) | 0];
+function encryptStringsPass(tokens, key, decoderName){
+  let count=0;
+  for(let idx=0; idx<tokens.length; idx++){
+    const t = tokens[idx];
+    if(t.type==='STRING' || t.type==='LONGSTRING'){
+      const bytes = unescapeLuaString(t.value);
+      if(bytes.length===0){ t.type='RAW'; t.value=`${decoderName}({})`; count++; continue; }
+      const enc = bytes.map((b,i)=> b ^ key[i % key.length]);
+      t.type='RAW';
+      t.value = `${decoderName}({${enc.join(',')}})`;
+      count++;
     }
-    if (!usedNames.has(cand) && !PROTECTED.has(cand)) {
-      usedNames.add(cand);
-      return cand;
-    }
+  }
+  return count;
+}
+
+function obfNumber(nStr){
+  if(!/^\d+$/.test(nStr)) return null;
+  const n = parseInt(nStr,10);
+  if(!Number.isSafeInteger(n) || n> 1e9) return null;
+  const roll = Math.random();
+  if(roll<0.34){
+    const a = Math.floor(Math.random()*1000)+1;
+    return `(${n+a}-${a})`;
+  } else if(roll<0.67){
+    const a = Math.floor(Math.random()*500)+1;
+    return `(${a}+${n-a})`;
+  } else {
+    const a = Math.floor(Math.random()*255);
+    const b = a ^ n;
+    return `(bit32.bxor(${a},${b}))`;
   }
 }
 
-/* =========================================================================
-   Local / parameter collection
-   ========================================================================= */
-
-const LOCAL_DECL_RE  = /\blocal\s+((?:[A-Za-z_][A-Za-z0-9_]*\s*(?:,\s*)?)+)(?=\s*(?:=|$|;|\n))/g;
-const FUNC_PARAMS_RE = /\bfunction\b[^()]*\(([^)]*)\)/g;
-const LOCAL_FUNC_RE  = /\blocal\s+function\s+([A-Za-z_][A-Za-z0-9_]*)/g;
-
-function collectRenameTargets(src) {
-  const targets = new Set();
-
-  for (const m of src.matchAll(LOCAL_DECL_RE)) {
-    for (const raw of m[1].split(",")) {
-      const n = raw.trim();
-      if (n && !PROTECTED.has(n)) targets.add(n);
+function obfNumbersPass(tokens){
+  let count=0;
+  for(const t of tokens){
+    if(t.type==='NUMBER'){
+      const r = obfNumber(t.value);
+      if(r){ t.type='RAW'; t.value=r; count++; }
     }
   }
-
-  for (const m of src.matchAll(LOCAL_FUNC_RE)) {
-    const n = m[1];
-    if (n && !PROTECTED.has(n)) targets.add(n);
-  }
-
-  for (const m of src.matchAll(FUNC_PARAMS_RE)) {
-    for (const raw of m[1].split(",")) {
-      const p = raw.trim();
-      if (p && p !== "..." && !PROTECTED.has(p)) targets.add(p);
-    }
-  }
-
-  return targets;
+  return count;
 }
 
-/* =========================================================================
-   Number obfuscation
-   ========================================================================= */
-
-function obfuscateNumber(literal) {
-  const lower = literal.toLowerCase();
-  if (lower.startsWith("0x")) return null;        // leave hex alone
-  if (literal.includes(".") || lower.includes("e")) return null; // leave floats alone
-
-  const val = parseInt(literal, 10);
-  if (!Number.isFinite(val)) return null;
-
-  const a = 1 + ((Math.random() * 5000) | 0);
-  if (Math.random() < 0.5) {
-    const b = val - a;
-    return `(${a}+(${b}))`;
-  }
-  const b = val + a;
-  return `(${b}-(${a}))`;
+function junkSnippet(gen){
+  const a = Math.floor(Math.random()*90)+1;
+  const b = Math.floor(Math.random()*90)+1;
+  const v1 = gen(), v2=gen();
+  const pool = [
+    `local ${v1}=(${a}+${b});if ${v1}==-1 then print(${v1}) end;`,
+    `do local ${v1}={};${v1}[1]=${a}; end;`,
+    `local ${v1}=${a}*${b};local ${v2}=${v1}%2;`,
+    `if false then local ${v1}=${a}/${b||1} end;`
+  ];
+  return pool[Math.floor(Math.random()*pool.length)];
 }
 
-/* =========================================================================
-   Junk
-   ========================================================================= */
-
-function makeJunkBlock(count = 3) {
-  const lines = [];
-  for (let i = 0; i < count; i++) {
-    const n1 = newName("_");
-    const v1 = 1 + ((Math.random() * 999) | 0);
-    const v2 = 1 + ((Math.random() * 999) | 0);
-    const mod = 2 + ((Math.random() * 96) | 0);
-    lines.push(`local ${n1} = (${v1}*${v2}) % ${mod}`);
-  }
-  return lines.join("\n");
-}
-
-/* =========================================================================
-   Renderer
-   ========================================================================= */
-
-const ALNUM_END   = /[A-Za-z0-9_]$/;
-const ALNUM_START = /^[A-Za-z0-9_]/;
-
-function render(tokens) {
-  const parts = [];
-  let prevVal = "";
-
-  for (const [kind, value] of tokens) {
-    if (kind === "WS" || kind === "NEWLINE") {
-      if (parts.length && parts[parts.length - 1] !== " ") parts.push(" ");
-      prevVal = " ";
-      continue;
-    }
-    if (prevVal && ALNUM_END.test(prevVal) && ALNUM_START.test(value)) {
-      parts.push(" ");
-    }
-    parts.push(value);
-    prevVal = value;
-  }
-  return parts.join("");
-}
-
-/* =========================================================================
-   Main transform
-   ========================================================================= */
-
-function obfuscate(src, opts) {
-  const rename        = opts.rename        !== false;
-  const encodeStrings = opts.encodeStrings !== false;
-  const encodeNumbers = opts.encodeNumbers !== false;
-  const stripComments = opts.stripComments !== false;
-  const insertJunk    = opts.insertJunk    !== false;
-
-  usedNames.clear();
-
-  const targets = rename ? collectRenameTargets(src) : new Set();
-  const renameMap = new Map();
-  for (const t of targets) renameMap.set(t, newName());
-
-  const decodeFn = newName("_");
-  const tokens = tokenize(src);
-
-  const outTokens = [];
-
-  for (const [kind, value] of tokens) {
-    if (kind === "LONGCOMMENT" || kind === "LINECOMMENT") {
-      if (!stripComments) outTokens.push([kind, value]);
-      continue;
-    }
-
-    if (kind === "STRING" && encodeStrings) {
-      const decoded = unescapeLuaString(value);
-      if (decoded === null) {
-        outTokens.push([kind, value]);
-      } else {
-        const codes = [];
-        for (const ch of decoded) {
-          const cp = ch.codePointAt(0);
-          codes.push(cp > 255 ? 63 : cp); // latin-1 "replace", like the Python version
-        }
-        outTokens.push(["CALL", `${decodeFn}({${codes.join(",")}})`]);
+function insertJunkPass(tokens, gen, density){
+  const out=[];
+  for(let idx=0; idx<tokens.length; idx++){
+    const t = tokens[idx];
+    out.push(t);
+    const isOpener = t.type==='KEYWORD' && ['then','do','else','repeat'].includes(t.value);
+    if(idx===0 || isOpener){
+      if(Math.random()<density){
+        out.push({type:'RAW', value: junkSnippet(gen)});
       }
-      continue;
     }
+  }
+  return out;
+}
 
-    if (kind === "NUMBER" && encodeNumbers) {
-      const obf = obfuscateNumber(value);
-      outTokens.push(obf ? ["CALL", obf] : [kind, value]);
-      continue;
-    }
+function isWordChar(c){ return !!c && /[A-Za-z0-9_]/.test(c); }
+const OPCHARS = new Set(['+','-','*','/','%','^','#','&','~','|','<','>','=',':','.']);
+function needsSpace(prev, cur){
+  if(!prev) return false;
+  const prevLast = prev._text[prev._text.length-1];
+  const curFirst = cur._text[0];
+  if(isWordChar(prevLast) && isWordChar(curFirst)) return true;
+  if(OPCHARS.has(prevLast) && OPCHARS.has(curFirst)) return true;
+  return false;
+}
 
-    if (kind === "IDENT" && renameMap.has(value)) {
-      outTokens.push(["IDENT", renameMap.get(value)]);
-      continue;
-    }
+function tokenText(t){
+  switch(t.type){
+    case 'STRING': return (t.quote||'"')+t.value+(t.quote||'"');
+    case 'LONGSTRING': return '['+'='.repeat(t.level||0)+'['+t.value+']'+'='.repeat(t.level||0)+']';
+    case 'RAW': return t.value;
+    default: return t.value;
+  }
+}
 
-    outTokens.push([kind, value]);
+function emit(tokens){
+  let out='';
+  let prev=null;
+  for(const t of tokens){
+    if(t.type==='EOF') continue;
+    t._text = tokenText(t);
+    if(needsSpace(prev, t)) out+=' ';
+    out+=t._text;
+    prev=t;
+  }
+  return out;
+}
+
+function strToBytes(s){
+  const out=[];
+  for(let i=0;i<s.length;i++) out.push(s.charCodeAt(i) & 0xFF);
+  return out;
+}
+
+function buildLoader(finalSrc, style){
+  const gen = makeNameGen(style);
+  const dataName = gen(), keyName = gen(), bufName = gen(), srcName=gen(), fnName=gen(), idxName=gen();
+  const keyLen = 6 + Math.floor(Math.random()*4);
+  const key = Array.from({length:keyLen}, ()=> Math.floor(Math.random()*250)+1);
+  const bytes = strToBytes(finalSrc);
+  const enc = bytes.map((b,i)=> b ^ key[i % key.length]);
+  const loader =
+`local ${keyName}={${key.join(',')}}
+local ${dataName}={${enc.join(',')}}
+local ${bufName}={}
+for ${idxName}=1,#${dataName} do
+${bufName}[${idxName}]=string.char(bit32.bxor(${dataName}[${idxName}], ${keyName}[((${idxName}-1)%#${keyName})+1]))
+end
+local ${srcName}=table.concat(${bufName})
+local ${fnName}=(loadstring or load)(${srcName})
+if ${fnName} then ${fnName}() else error("payload failed to load") end`;
+  return loader;
+}
+
+function obfuscate(src, opts){
+  const t0 = performance.now();
+  let tokens = tokenize(src); // comment stripping happens implicitly in the tokenizer
+
+  let renamedCount = 0;
+  if(opts.rename){
+    renamedCount = renamePass(tokens, opts.style);
   }
 
-  const body = render(outTokens);
-
-  let header = "";
-  if (encodeStrings) {
-    header +=
-      `local function ${decodeFn}(t) local s={} for i=1,#t do s[i]=string.char(t[i]) end return table.concat(s) end\n`;
+  let stringCount = 0;
+  if(opts.strings){
+    const key = [];
+    const klen = 4 + Math.floor(Math.random()*5);
+    for(let i=0;i<klen;i++) key.push(Math.floor(Math.random()*250)+1);
+    const gen = makeNameGen(opts.style);
+    const decoderName = gen();
+    const keyArrName = gen();
+    stringCount = encryptStringsPass(tokens, key, decoderName);
+    if(stringCount>0){
+      const decoderDef = `local ${keyArrName}={${key.join(',')}}\nlocal function ${decoderName}(t) local r={} for i=1,#t do r[i]=string.char(bit32.bxor(t[i], ${keyArrName}[((i-1)%#${keyArrName})+1])) end return table.concat(r) end\n`;
+      tokens.unshift({type:'RAW', value: decoderDef});
+    }
   }
-  if (insertJunk) {
-    header += makeJunkBlock() + "\n";
+
+  let numCount = 0;
+  if(opts.numbers){
+    numCount = obfNumbersPass(tokens);
   }
 
-  return header + body;
+  if(opts.junk){
+    const gen = makeNameGen(opts.style);
+    tokens = insertJunkPass(tokens, gen, opts.junkDensity);
+  }
+
+  let body = emit(tokens);
+
+  if(opts.loader){
+    body = buildLoader(body, opts.style);
+  }
+
+  const t1 = performance.now();
+  return {
+    code: body,
+    renamedCount, stringCount, numCount,
+    ms: Math.max(1, Math.round(t1-t0))
+  };
 }
 
 /* =========================================================================
-   UI
+   UI wiring
    ========================================================================= */
+const inputArea = document.getElementById('inputArea');
+const outputArea = document.getElementById('outputArea');
+const inStats = document.getElementById('inStats');
+const outStats = document.getElementById('outStats');
+const runBtn = document.getElementById('runBtn');
+const copyBtn = document.getElementById('copyBtn');
+const downloadBtn = document.getElementById('downloadBtn');
+const toast = document.getElementById('toast');
+const statsPanel = document.getElementById('statsPanel');
 
-const $ = id => document.getElementById(id);
+const SAMPLE = `-- sample script
+local function greet(name)
+    local msg = "Hello, " .. name .. "! Welcome."
+    print(msg)
+    return msg
+end
 
-const inputEl      = $("input");
-const outputEl     = $("output");
-const statusEl     = $("status");
-const runBtn       = $("runBtn");
-const downloadBtn  = $("downloadBtn");
-const copyBtn      = $("copyBtn");
-const clearBtn     = $("clearBtn");
-const dropEl       = $("drop");
-const fileInput    = $("fileInput");
-const outNameEl    = $("outName");
+local Players = game:GetService("Players")
+local total = 0
+for i = 1, 10 do
+    if i % 2 == 0 then
+        total = total + i
+    end
+end
 
-let hasOutput = false;
+greet("World")
+print("Sum of evens:", total)`;
 
-function setStatus(msg, cls = "") {
-  statusEl.textContent = msg;
-  statusEl.className = "status" + (cls ? " " + cls : "");
+function updateInStats(){
+  const v = inputArea.value;
+  inStats.textContent = `${v.length} chars · ${v.split('\n').length} lines`;
+}
+inputArea.addEventListener('input', updateInStats);
+updateInStats();
+
+document.getElementById('loadSample').addEventListener('click', ()=>{
+  inputArea.value = SAMPLE;
+  updateInStats();
+});
+document.getElementById('clearInput').addEventListener('click', ()=>{
+  inputArea.value = '';
+  updateInStats();
+});
+
+function showToast(msg){
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(()=> toast.classList.remove('show'), 1600);
 }
 
-function baseName(name) {
-  return name.replace(/\.[^./\\]+$/, "") || "script";
+function fmtBytes(n){
+  if(n < 1024) return n + ' B';
+  return (n/1024).toFixed(1) + ' KB';
 }
 
-function loadFile(file) {
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    inputEl.value = String(reader.result);
-    outNameEl.value = baseName(file.name) + ".obf.lua";
-    setStatus(`Loaded ${file.name} (${file.size} bytes)`, "ok");
+runBtn.addEventListener('click', ()=>{
+  const src = inputArea.value;
+  if(!src.trim()){
+    showToast('Paste some Lua first');
+    return;
+  }
+  const opts = {
+    rename: document.getElementById('optRename').checked,
+    strings: document.getElementById('optStrings').checked,
+    numbers: document.getElementById('optNumbers').checked,
+    junk: document.getElementById('optJunk').checked,
+    junkDensity: parseFloat(document.getElementById('junkDensity').value),
+    loader: document.getElementById('optLoader').checked,
+    style: document.getElementById('nameStyle').value
   };
-  reader.onerror = () => setStatus("Could not read that file.", "err");
-  reader.readAsText(file, "utf-8");
-}
 
-/* --- file picker --- */
-dropEl.addEventListener("click", () => fileInput.click());
-fileInput.addEventListener("change", e => {
-  loadFile(e.target.files[0]);
-  fileInput.value = "";
-});
-
-/* --- drag & drop --- */
-["dragenter", "dragover"].forEach(ev =>
-  dropEl.addEventListener(ev, e => {
-    e.preventDefault();
-    dropEl.classList.add("over");
-  })
-);
-["dragleave", "drop"].forEach(ev =>
-  dropEl.addEventListener(ev, e => {
-    e.preventDefault();
-    dropEl.classList.remove("over");
-  })
-);
-dropEl.addEventListener("drop", e => {
-  const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
-  loadFile(f);
-});
-
-/* also allow dropping anywhere on the page */
-window.addEventListener("dragover", e => e.preventDefault());
-window.addEventListener("drop", e => {
-  e.preventDefault();
-  if (e.target.closest && e.target.closest("#drop")) return;
-  const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
-  if (f) loadFile(f);
-});
-
-/* --- run --- */
-function run() {
-  const src = inputEl.value;
-  if (!src.trim()) {
-    setStatus("Nothing to obfuscate — paste some code first.", "err");
+  let result;
+  try{
+    result = obfuscate(src, opts);
+  } catch(e){
+    showToast('Error obfuscating — check console');
+    console.error(e);
     return;
   }
 
-  runBtn.disabled = true;
-  setStatus("Working…");
+  outputArea.value = result.code;
+  outStats.textContent = `${result.code.length} chars · ${result.code.split('\n').length} lines`;
+  copyBtn.disabled = false;
+  downloadBtn.disabled = false;
 
-  // yield to the browser so the button state paints
-  setTimeout(() => {
-    try {
-      const result = obfuscate(src, {
-        rename:        $("optRename").checked,
-        encodeStrings: $("optStrings").checked,
-        encodeNumbers: $("optNumbers").checked,
-        stripComments: $("optComments").checked,
-        insertJunk:    $("optJunk").checked
-      });
+  statsPanel.style.display = 'grid';
+  document.getElementById('statOrig').textContent = fmtBytes(src.length);
+  document.getElementById('statOut').textContent = fmtBytes(result.code.length);
+  document.getElementById('statNames').textContent = result.renamedCount;
+  document.getElementById('statStrings').textContent = result.stringCount;
+  document.getElementById('statNums').textContent = result.numCount;
+  document.getElementById('statTime').textContent = result.ms + 'ms';
+});
 
-      outputEl.value = result;
-      hasOutput = true;
-      downloadBtn.disabled = false;
-      copyBtn.disabled = false;
+copyBtn.addEventListener('click', async ()=>{
+  try{
+    await navigator.clipboard.writeText(outputArea.value);
+    showToast('Copied to clipboard');
+  } catch(e){
+    outputArea.select();
+    document.execCommand('copy');
+    showToast('Copied to clipboard');
+  }
+});
 
-      const pct = src.length
-        ? Math.round((result.length / src.length) * 100)
-        : 100;
-      setStatus(`Done — ${src.length} → ${result.length} bytes (${pct}% of original)`, "ok");
-    } catch (err) {
-      console.error(err);
-      setStatus("Error: " + (err && err.message ? err.message : String(err)), "err");
-    } finally {
-      runBtn.disabled = false;
-    }
-  }, 10);
-}
-
-runBtn.addEventListener("click", run);
-
-/* --- download --- */
-downloadBtn.addEventListener("click", () => {
-  if (!hasOutput) return;
-  let name = (outNameEl.value || "").trim() || "obfuscated.lua";
-  if (!/\.[A-Za-z0-9]+$/.test(name)) name += ".lua";
-
-  const blob = new Blob([outputEl.value], { type: "text/plain;charset=utf-8" });
+downloadBtn.addEventListener('click', ()=>{
+  const blob = new Blob([outputArea.value], {type:'text/plain'});
   const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
+  const a = document.createElement('a');
   a.href = url;
-  a.download = name;
+  a.download = 'obfuscated.lua';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 2000);
-
-  setStatus(`Downloaded ${name}`, "ok");
-});
-
-/* --- copy --- */
-copyBtn.addEventListener("click", async () => {
-  if (!hasOutput) return;
-  try {
-    await navigator.clipboard.writeText(outputEl.value);
-    setStatus("Output copied to clipboard.", "ok");
-  } catch {
-    outputEl.select();
-    document.execCommand("copy");
-    setStatus("Output copied to clipboard.", "ok");
-  }
-});
-
-/* --- clear --- */
-clearBtn.addEventListener("click", () => {
-  inputEl.value = "";
-  outputEl.value = "";
-  hasOutput = false;
-  downloadBtn.disabled = true;
-  copyBtn.disabled = true;
-  outNameEl.value = "obfuscated.lua";
-  setStatus("");
-  inputEl.focus();
-});
-
-/* --- keyboard shortcut: Ctrl/Cmd + Enter --- */
-document.addEventListener("keydown", e => {
-  if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
-    e.preventDefault();
-    run();
-  }
-});
-
-/* --- tab key inserts a tab in the editor instead of moving focus --- */
-inputEl.addEventListener("keydown", e => {
-  if (e.key === "Tab") {
-    e.preventDefault();
-    const s = inputEl.selectionStart, en = inputEl.selectionEnd;
-    inputEl.value = inputEl.value.slice(0, s) + "  " + inputEl.value.slice(en);
-    inputEl.selectionStart = inputEl.selectionEnd = s + 2;
-  }
+  URL.revokeObjectURL(url);
+  showToast('Download started');
 });
 </script>
 </body>
