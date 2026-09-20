@@ -3,15 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>OPAQ — Lua Obfuscator v2</title>
+<title>OPAQ — Lua Obfuscator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg: #0a0d0a; --bg2: #0f130f; --panel: #12160f; --line: #263323;
-    --amber: #ffb020; --amber-dim: #7a5a18; --green: #7ee081;
-    --green-dim: #3a5a3c; --text: #d9e0d3; --text-dim: #7f8c78;
-    --danger: #ff6b5e; --radius: 3px;
+    --bg: #0a0d0a;
+    --bg2: #0f130f;
+    --panel: #12160f;
+    --line: #263323;
+    --amber: #ffb020;
+    --amber-dim: #7a5a18;
+    --green: #7ee081;
+    --green-dim: #3a5a3c;
+    --text: #d9e0d3;
+    --text-dim: #7f8c78;
+    --danger: #ff6b5e;
+    --radius: 3px;
     box-sizing: border-box;
     padding-top: env(safe-area-inset-top, 0px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -20,7 +28,8 @@
   html{scroll-padding-top: env(safe-area-inset-top, 0px);}
   html,body{height:100%;}
   body{
-    margin:0; background: var(--bg);
+    margin:0;
+    background: var(--bg);
     background-image:
       radial-gradient(ellipse 900px 500px at 15% -10%, rgba(126,224,129,0.06), transparent 60%),
       radial-gradient(ellipse 700px 400px at 100% 10%, rgba(255,176,32,0.05), transparent 60%);
@@ -31,87 +40,145 @@
   .mono{ font-family:'IBM Plex Mono', ui-monospace, 'SFMono-Regular', monospace; }
 
   header{
-    border-bottom: 1px solid var(--line); padding: 18px 28px;
+    border-bottom: 1px solid var(--line);
+    padding: 18px 28px;
     display:flex; align-items:center; justify-content:space-between;
     gap: 16px; flex-wrap: wrap;
     position: sticky; top: env(safe-area-inset-top, 0px); background: rgba(10,13,10,0.92);
-    backdrop-filter: blur(6px); z-index: 20;
+    backdrop-filter: blur(6px);
+    z-index: 20;
   }
   .brand{ display:flex; align-items:baseline; gap:10px; }
   .brand .mark{
-    font-family:'IBM Plex Mono'; font-weight:700; font-size:20px; letter-spacing:0.02em;
-    color: var(--bg); background: linear-gradient(135deg, var(--green), var(--amber));
-    padding: 3px 9px; border-radius: var(--radius);
+    font-family:'IBM Plex Mono';
+    font-weight:700; font-size:20px; letter-spacing:0.02em;
+    color: var(--bg);
+    background: linear-gradient(135deg, var(--green), var(--amber));
+    padding: 3px 9px;
+    border-radius: var(--radius);
   }
   .brand .name{ font-family:'IBM Plex Mono'; font-weight:600; font-size:15px; color:var(--text); letter-spacing:0.03em; }
   .brand .tag{ color: var(--text-dim); font-size:13px; }
   .headline-links{ display:flex; gap:20px; font-size:13px; color:var(--text-dim); }
   .headline-links span{ color: var(--green); }
 
-  main{ max-width: 1360px; margin: 0 auto; padding: 30px 28px 80px; }
+  main{
+    max-width: 1360px;
+    margin: 0 auto;
+    padding: 30px 28px 80px;
+  }
   .intro{ max-width: 760px; margin-bottom: 28px; }
   .intro h1{
-    font-family:'IBM Plex Mono'; font-size: clamp(26px, 3.4vw, 38px);
-    line-height: 1.15; margin: 0 0 12px; font-weight: 700; letter-spacing: -0.01em;
+    font-family:'IBM Plex Mono';
+    font-size: clamp(26px, 3.4vw, 38px);
+    line-height: 1.15;
+    margin: 0 0 12px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
   }
   .intro h1 .accent{ color: var(--amber); }
   .intro p{ color: var(--text-dim); font-size: 14.5px; line-height:1.6; margin:0; }
 
-  .grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
+  .grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    align-items: start;
+  }
   @media (max-width: 900px){ .grid{ grid-template-columns: 1fr; } }
 
-  .panel{ background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .panel{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
   .panel-head{
     display:flex; align-items:center; justify-content:space-between;
-    padding: 10px 14px; border-bottom: 1px solid var(--line); background: var(--bg2);
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg2);
   }
   .panel-head .lbl{ font-family:'IBM Plex Mono'; font-size:12px; letter-spacing:0.08em; color: var(--text-dim); }
   .dot-row{ display:flex; gap:6px; }
   .dot-row i{ width:8px; height:8px; border-radius:50%; display:inline-block; background: var(--line); }
 
   textarea{
-    width:100%; height: 420px; resize: vertical; background: var(--bg); color: var(--text);
-    border: none; padding: 14px; font-family:'IBM Plex Mono'; font-size: 13px;
-    line-height: 1.55; outline: none; tab-size: 2;
+    width:100%; height: 420px;
+    resize: vertical;
+    background: var(--bg);
+    color: var(--text);
+    border: none;
+    padding: 14px;
+    font-family:'IBM Plex Mono';
+    font-size: 13px;
+    line-height: 1.55;
+    outline: none;
+    tab-size: 2;
   }
   textarea::placeholder{ color: #4a5545; }
   textarea[readonly]{ color: var(--green); }
 
   .panel-foot{
     display:flex; align-items:center; justify-content:space-between;
-    padding: 8px 14px; border-top: 1px solid var(--line); background: var(--bg2);
-    font-size: 12px; color: var(--text-dim); flex-wrap: wrap; gap: 8px;
+    padding: 8px 14px;
+    border-top: 1px solid var(--line);
+    background: var(--bg2);
+    font-size: 12px; color: var(--text-dim);
+    flex-wrap: wrap; gap: 8px;
   }
   .btn-row{ display:flex; gap:8px; flex-wrap:wrap; }
 
   button{
-    font-family:'IBM Plex Mono'; font-size: 12.5px; border: 1px solid var(--line);
-    background: var(--bg2); color: var(--text); padding: 7px 12px;
-    border-radius: var(--radius); cursor: pointer; transition: border-color .15s, color .15s;
+    font-family:'IBM Plex Mono';
+    font-size: 12.5px;
+    border: 1px solid var(--line);
+    background: var(--bg2);
+    color: var(--text);
+    padding: 7px 12px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: border-color .15s, color .15s;
   }
   button:hover{ border-color: var(--green-dim); color: var(--green); }
   button:disabled{ opacity:0.4; cursor:not-allowed; }
-  button.primary{ background: var(--green); color: #08120a; border-color: var(--green); font-weight: 600; }
+  button.primary{
+    background: var(--green);
+    color: #08120a;
+    border-color: var(--green);
+    font-weight: 600;
+  }
   button.primary:hover{ background: #93ef95; color:#08120a; }
   button.ghost{ background: transparent; }
 
   .options{
-    margin-top: 20px; background: var(--panel); border: 1px solid var(--line);
-    border-radius: var(--radius); padding: 18px 20px;
+    margin-top: 20px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 18px 20px;
   }
   .options h2{
     font-family:'IBM Plex Mono'; font-size: 13px; letter-spacing:0.08em;
     color: var(--text-dim); margin: 0 0 14px; font-weight:600;
   }
   .opt-grid{
-    display:grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px 20px;
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 12px 20px;
   }
-  .opt{ display:flex; align-items:flex-start; gap:10px; padding: 10px; border: 1px solid transparent; border-radius: var(--radius); }
+  .opt{
+    display:flex; align-items:flex-start; gap:10px;
+    padding: 10px;
+    border: 1px solid transparent;
+    border-radius: var(--radius);
+  }
   .opt:hover{ border-color: var(--line); background: rgba(126,224,129,0.02); }
   .opt input[type=checkbox]{
     appearance:none; width:16px; height:16px; margin-top:2px; flex:none;
     border:1px solid var(--text-dim); border-radius:3px; cursor:pointer;
-    background: var(--bg); position: relative;
+    background: var(--bg);
+    position: relative;
   }
   .opt input[type=checkbox]:checked{ background: var(--green); border-color: var(--green); }
   .opt input[type=checkbox]:checked::after{
@@ -121,42 +188,58 @@
   .opt label{ cursor:pointer; }
   .opt .t{ font-size: 13.5px; font-weight:500; color: var(--text); display:block; }
   .opt .d{ font-size: 12px; color: var(--text-dim); margin-top:2px; line-height:1.4; }
+  .opt .badge{
+    display:inline-block; font-family:'IBM Plex Mono'; font-size:9.5px; letter-spacing:0.04em;
+    color: var(--amber); border:1px solid var(--amber-dim); border-radius:2px;
+    padding:1px 5px; margin-left:6px; vertical-align:middle;
+  }
 
   .sub-row{ margin-top:14px; display:flex; gap:18px; flex-wrap:wrap; align-items:center; }
   .sub-row .grp{ display:flex; align-items:center; gap:8px; font-size:13px; color: var(--text-dim); }
   select{
-    font-family:'IBM Plex Mono'; font-size: 12.5px; background: var(--bg); color: var(--text);
-    border: 1px solid var(--line); border-radius: var(--radius); padding: 5px 8px;
+    font-family:'IBM Plex Mono'; font-size: 12.5px;
+    background: var(--bg); color: var(--text);
+    border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 5px 8px;
   }
 
-  .run-row{ margin-top: 20px; display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  .run-row{
+    margin-top: 20px;
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+  }
   .run-row button.primary{ font-size:14px; padding: 11px 22px; }
   .warn{
-    font-size: 12.5px; color: var(--text-dim); border-left: 2px solid var(--amber-dim);
+    font-size: 12.5px; color: var(--text-dim);
+    border-left: 2px solid var(--amber-dim);
     padding-left: 10px;
   }
   .warn b{ color: var(--amber); font-weight:600; }
 
   .stats{
-    margin-top: 20px; display:grid;
+    margin-top: 20px;
+    display:grid;
     grid-template-columns: repeat(auto-fit, minmax(150px,1fr));
-    gap: 1px; background: var(--line); border: 1px solid var(--line);
-    border-radius: var(--radius); overflow:hidden;
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow:hidden;
   }
   .stat{ background: var(--panel); padding: 14px 16px; }
   .stat .v{ font-family:'IBM Plex Mono'; font-size: 20px; color: var(--green); font-weight:700; }
   .stat .k{ font-size: 11.5px; color: var(--text-dim); margin-top:2px; letter-spacing:0.03em; }
 
   .toast{
-    position: fixed; bottom: calc(24px + env(safe-area-inset-bottom,0px)); left:50%;
-    transform:translateX(-50%) translateY(20px);
+    position: fixed; bottom: calc(24px + env(safe-area-inset-bottom,0px)); left:50%; transform:translateX(-50%) translateY(20px);
     background: var(--green); color:#08120a; font-family:'IBM Plex Mono'; font-size:13px; font-weight:600;
     padding: 10px 18px; border-radius: var(--radius); opacity:0; pointer-events:none;
     transition: opacity .2s, transform .2s; z-index: 50;
   }
   .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
 
-  footer{ text-align:center; padding: 30px 20px 40px; color: var(--text-dim); font-size:12px; }
+  footer{
+    text-align:center; padding: 30px 20px 40px; color: var(--text-dim); font-size:12px;
+  }
 </style>
 </head>
 <body>
@@ -165,7 +248,7 @@
   <div class="brand">
     <span class="mark">λ</span>
     <span class="name">OPAQ</span>
-    <span class="tag mono">// lua source obfuscator v2</span>
+    <span class="tag mono">// lua source obfuscator</span>
   </div>
   <div class="headline-links mono">
     <div><span>●</span> local, client-side, nothing leaves your browser</div>
@@ -175,7 +258,7 @@
 <main>
   <div class="intro">
     <h1>Turn readable Lua into <span class="accent">something a reverse&#8209;engineer hates.</span></h1>
-    <p>Paste a script, pick your layers, and get back a renamed, string&#8209;encrypted, number&#8209;mangled, junk&#8209;padded build with optional VM virtualization — the same architectural approach used by commercial protectors like Luraph. Runs entirely in this tab.</p>
+    <p>Paste a script, pick your layers, and get back a renamed, pool&#8209;encrypted, number&#8209;mangled, junk&#8209;padded, optionally flattened build — wrapped in a checksum&#8209;verified bootstrap loader in the style of commercial obfuscators like Luraph. Runs entirely in this tab.</p>
   </div>
 
   <div class="grid">
@@ -222,70 +305,49 @@ greet('world')"></textarea>
         <input type="checkbox" id="optRename" checked>
         <label for="optRename">
           <span class="t">Identifier renaming</span>
-          <span class="d">Local variables, function params & local functions get renamed to confusing tokens.</span>
+          <span class="d">Local variables, function params & local functions get renamed to confusing tokens. Globals, fields and API names are left untouched.</span>
         </label>
       </div>
       <div class="opt">
         <input type="checkbox" id="optStrings" checked>
         <label for="optStrings">
-          <span class="t">String encryption</span>
-          <span class="d">Every string literal is XOR-encrypted into a byte array and rebuilt at runtime (2 layers).</span>
+          <span class="t">Pooled string encryption <span class="badge">v2</span></span>
+          <span class="d">Every string literal is pulled into one shuffled constant pool, encrypted with two independent rotating XOR/add keys, and rebuilt at runtime through a single shared decoder — so call sites no longer map 1:1 to source order.</span>
         </label>
       </div>
       <div class="opt">
         <input type="checkbox" id="optNumbers" checked>
         <label for="optNumbers">
           <span class="t">Number mangling</span>
-          <span class="d">Integer literals are replaced with equivalent arithmetic or bit32.bxor expressions.</span>
+          <span class="d">Integer literals are replaced with equivalent arithmetic, bit32.bxor, or nested add/sub expressions that evaluate to the same value.</span>
         </label>
       </div>
       <div class="opt">
         <input type="checkbox" id="optJunk" checked>
         <label for="optJunk">
           <span class="t">Dead code injection</span>
-          <span class="d">Harmless no-op statements, unreachable branches and throwaway locals.</span>
+          <span class="d">Harmless no-op statements, unreachable branches and throwaway locals scattered through every block.</span>
+        </label>
+      </div>
+      <div class="opt">
+        <input type="checkbox" id="optFlatten">
+        <label for="optFlatten">
+          <span class="t">Control-flow flattening <span class="badge">experimental</span></span>
+          <span class="d">Splits the top-level statement sequence into blocks, then re-emits them out of order inside a single state-machine dispatch loop (the same "flatten into a driver loop" idea behind Luraph-style flow obfuscation). Top-level only — code inside functions/loops keeps its natural structure. Review output on scripts using goto/labels.</span>
         </label>
       </div>
       <div class="opt">
         <input type="checkbox" id="optComments" checked>
         <label for="optComments">
           <span class="t">Strip comments & whitespace</span>
-          <span class="d">Removes all comments and collapses formatting.</span>
-        </label>
-      </div>
-      <div class="opt">
-        <input type="checkbox" id="optFlatten" checked>
-        <label for="optFlatten">
-          <span class="t">Control-flow flattening</span>
-          <span class="d">Converts structured blocks into a state-machine dispatch loop — the same technique used by Luraph.</span>
-        </label>
-      </div>
-      <div class="opt">
-        <input type="checkbox" id="optOpaque" checked>
-        <label for="optOpaque">
-          <span class="t">Opaque predicates</span>
-          <span class="d">Injects always-true/false conditions that are hard to statically evaluate.</span>
-        </label>
-      </div>
-      <div class="opt">
-        <input type="checkbox" id="optVM" checked>
-        <label for="optVM">
-          <span class="t">VM virtualization</span>
-          <span class="d">Compiles the transformed script into custom bytecode and generates a Lua VM interpreter. The original source no longer exists in any readable form. Largest size increase, strongest protection.</span>
-        </label>
-      </div>
-      <div class="opt">
-        <input type="checkbox" id="optAntiTamper" checked>
-        <label for="optAntiTamper">
-          <span class="t">Anti-tamper checks</span>
-          <span class="d">Environment integrity checks that crash on inspection or modification.</span>
+          <span class="d">Removes all comments and collapses formatting so nothing but logic remains.</span>
         </label>
       </div>
       <div class="opt">
         <input type="checkbox" id="optLoader" checked>
         <label for="optLoader">
-          <span class="t">Encoded bootstrap loader</span>
-          <span class="d">Packs the entire transformed script into a rotating-key byte array and emits a tiny stub that decodes and load()s it.</span>
+          <span class="t">Encoded bootstrap loader <span class="badge">v2</span></span>
+          <span class="d">Packs the entire transformed script into a rotating-key byte array, embeds a checksum computed over the encoded bytes, verifies it at load time (erroring out if the payload was tampered with), then decodes and load()s it — the core trick behind Luraph-style loaders plus a basic anti-tamper check.</span>
         </label>
       </div>
     </div>
@@ -306,30 +368,21 @@ greet('world')"></textarea>
           <option value="0.85">high</option>
         </select>
       </div>
-      <div class="grp">
-        <span class="mono">VM layers</span>
-        <select id="vmLayers">
-          <option value="1">1 (fast)</option>
-          <option value="2" selected>2 (balanced)</option>
-          <option value="3">3 (strong)</option>
-        </select>
-      </div>
     </div>
   </div>
 
   <div class="run-row">
     <button class="primary" id="runBtn">Obfuscate script</button>
-    <span class="warn">Uses heuristic, parser-light transforms — not a full AST/scope resolver. <b>Always test the output</b> before shipping; scripts with unusual shadowing or goto labels may need manual review. VM mode may significantly increase runtime cost for performance-critical sections.</span>
+    <span class="warn">This uses heuristic, parser-light transforms — not a full AST/scope resolver. <b>Always test the output</b> before shipping it; scripts with unusual shadowing, goto labels, or repeat/until loops may need manual review, especially with flattening enabled.</span>
   </div>
 
   <div class="stats" id="statsPanel" style="display:none;">
     <div class="stat"><div class="v" id="statOrig">0 B</div><div class="k">ORIGINAL SIZE</div></div>
     <div class="stat"><div class="v" id="statOut">0 B</div><div class="k">OUTPUT SIZE</div></div>
     <div class="stat"><div class="v" id="statNames">0</div><div class="k">IDENTIFIERS RENAMED</div></div>
-    <div class="stat"><div class="v" id="statStrings">0</div><div class="k">STRINGS ENCRYPTED</div></div>
+    <div class="stat"><div class="v" id="statStrings">0</div><div class="k">STRINGS POOLED</div></div>
     <div class="stat"><div class="v" id="statNums">0</div><div class="k">NUMBERS MANGLED</div></div>
-    <div class="stat"><div class="v" id="statFlatten">0</div><div class="k">BLOCKS FLATTENED</div></div>
-    <div class="stat"><div class="v" id="statVM">0</div><div class="k">VM INSTRUCTIONS</div></div>
+    <div class="stat"><div class="v" id="statChunks">0</div><div class="k">CHUNKS FLATTENED</div></div>
     <div class="stat"><div class="v" id="statTime">0ms</div><div class="k">BUILD TIME</div></div>
   </div>
 </main>
@@ -339,8 +392,8 @@ greet('world')"></textarea>
 
 <script>
 /* =========================================================================
-   OPAQ v2 — Lua source obfuscator engine
-   Tokenizer -> transform passes -> VM compiler -> safe re-emitter -> loader
+   OPAQ — Lua source obfuscator engine
+   Tokenizer -> transform passes -> safe re-emitter -> optional loader wrap
    ========================================================================= */
 
 const KEYWORDS = new Set(["and","break","do","else","elseif","end","false","for","function","goto","if","in","local","nil","not","or","repeat","return","then","true","until","while"]);
@@ -349,7 +402,6 @@ function isDigit(c){ return c>='0'&&c<='9'; }
 function isAlpha(c){ return !!c && /[A-Za-z_]/.test(c); }
 function isAlnum(c){ return !!c && /[A-Za-z0-9_]/.test(c); }
 
-/* ---------- TOKENIZER (extended) ---------- */
 function tokenize(src){
   let i=0, n=src.length;
   const tokens=[];
@@ -424,7 +476,7 @@ function tokenize(src){
     const three=src.slice(i,i+3);
     if(three==='...'){ tokens.push({type:'OP', value:'...'}); i+=3; continue; }
     const two=src.slice(i,i+2);
-    if(['==','~=','<=','>=','..','::','//'].includes(two)){ tokens.push({type:'OP', value:two}); i+=2; continue; }
+    if(['==','~=','<=','>=','..','::'].includes(two)){ tokens.push({type:'OP', value:two}); i+=2; continue; }
     tokens.push({type:'PUNCT', value:c});
     i++;
   }
@@ -459,6 +511,18 @@ function makeNameGen(style){
     used.add(n);
     return n;
   };
+}
+
+function randKey(minLen, maxLen){
+  const len = minLen + Math.floor(Math.random()*(maxLen-minLen+1));
+  return Array.from({length:len}, ()=> Math.floor(Math.random()*250)+1);
+}
+function shuffleArray(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
 }
 
 function collectLocalNames(tokens){
@@ -556,24 +620,58 @@ function unescapeLuaString(raw){
   return out;
 }
 
-/* ---------- MULTI-LAYER STRING ENCRYPTION ---------- */
-function encryptStringsPass(tokens, key1, key2, decoderName){
-  let count=0;
+/* ---- pooled, two-layer-keyed string encryption (Luraph-style constant pool) ---- */
+function encryptStringsPassPooled(tokens, gen){
+  const literals = [];
+  const targets = [];
   for(let idx=0; idx<tokens.length; idx++){
     const t = tokens[idx];
     if(t.type==='STRING' || t.type==='LONGSTRING'){
-      const bytes = unescapeLuaString(t.value);
-      if(bytes.length===0){ t.type='RAW'; t.value=`${decoderName}({})`; count++; continue; }
-      // Layer 1: XOR with key1
-      const l1 = bytes.map((b,i)=> b ^ key1[i % key1.length]);
-      // Layer 2: XOR with key2
-      const l2 = l1.map((b,i)=> b ^ key2[i % key2.length]);
-      t.type='RAW';
-      t.value = `${decoderName}({${l2.join(',')}})`;
-      count++;
+      literals.push(unescapeLuaString(t.value));
+      targets.push(t);
     }
   }
-  return count;
+  if(literals.length===0) return 0;
+
+  const key1 = randKey(4,8);
+  const key2 = randKey(4,8);
+
+  // shuffle storage order so pool position no longer matches source order
+  const order = literals.map((_,i)=>i);
+  shuffleArray(order);
+  const poolIndexOf = new Array(literals.length);
+  order.forEach((origIdx, poolIdx)=> poolIndexOf[origIdx]=poolIdx);
+
+  const poolEntries = order.map(origIdx=>{
+    const bytes = literals[origIdx];
+    if(bytes.length===0) return '{}';
+    const enc = bytes.map((b,p)=> ((b ^ key1[p % key1.length]) + key2[p % key2.length]) & 0xFF);
+    return `{${enc.join(',')}}`;
+  });
+
+  const poolName = gen(), decoderName = gen(), k1name = gen(), k2name = gen();
+  const poolDef =
+`local ${k1name}={${key1.join(',')}}
+local ${k2name}={${key2.join(',')}}
+local ${poolName}={${poolEntries.join(',')}}
+local function ${decoderName}(i)
+local t=${poolName}[i]
+local r={}
+for p=1,#t do
+r[p]=string.char(bit32.bxor((t[p]-${k2name}[((p-1)%#${k2name})+1])%256,${k1name}[((p-1)%#${k1name})+1]))
+end
+return table.concat(r)
+end
+`;
+
+  for(let i=0;i<targets.length;i++){
+    const t = targets[i];
+    t.type='RAW';
+    t.value = `${decoderName}(${poolIndexOf[i]+1})`;
+  }
+
+  tokens.unshift({type:'RAW', value: poolDef});
+  return literals.length;
 }
 
 function obfNumber(nStr){
@@ -581,16 +679,20 @@ function obfNumber(nStr){
   const n = parseInt(nStr,10);
   if(!Number.isSafeInteger(n) || n> 1e9) return null;
   const roll = Math.random();
-  if(roll<0.34){
+  if(roll<0.25){
     const a = Math.floor(Math.random()*1000)+1;
     return `(${n+a}-${a})`;
-  } else if(roll<0.67){
+  } else if(roll<0.5){
     const a = Math.floor(Math.random()*500)+1;
     return `(${a}+${n-a})`;
-  } else {
+  } else if(roll<0.75){
     const a = Math.floor(Math.random()*255);
     const b = a ^ n;
     return `(bit32.bxor(${a},${b}))`;
+  } else {
+    const a = Math.floor(Math.random()*50)+1;
+    const b = Math.floor(Math.random()*50)+1;
+    return `((${n}+${a}+${b})-${a}-${b})`;
   }
 }
 
@@ -633,310 +735,119 @@ function insertJunkPass(tokens, gen, density){
   return out;
 }
 
-/* ---------- CONTROL FLOW FLATTENING ---------- */
-function flattenControlFlow(tokens){
-  let flattenCount = 0;
+/* ---- top-level control-flow flattening ----
+   Splits the token stream into top-level statement chunks (safe boundaries
+   only: after a top-level block closes with `end`, or at a top-level `;`),
+   then re-emits the chunks in shuffled order inside a single dispatcher
+   while-loop driven by a numeric state variable — the same "flatten into
+   one driver loop" shape used by real flow-obfuscating tools. Only the
+   top level is touched; anything inside functions/loops/if-blocks keeps
+   its original structure untouched. */
+function splitTopLevelChunks(tokens){
+  const chunks = [];
+  let current = [];
+  const stack = [];
+  let expectingDo = false;
+  let bracketDepth = 0;
+
+  for(let idx=0; idx<tokens.length; idx++){
+    const t = tokens[idx];
+    if(t.type==='EOF') break;
+    current.push(t);
+
+    if(t.type==='PUNCT'){
+      if(t.value==='('||t.value==='{'||t.value==='[') bracketDepth++;
+      else if(t.value===')'||t.value==='}'||t.value===']') bracketDepth=Math.max(0,bracketDepth-1);
+    }
+
+    let justClosedEnd = false;
+    if(t.type==='KEYWORD'){
+      if(t.value==='while' || t.value==='for'){
+        stack.push('end'); expectingDo = true;
+      } else if(t.value==='do'){
+        if(expectingDo){ expectingDo = false; }
+        else { stack.push('end'); }
+      } else if(t.value==='if' || t.value==='function'){
+        stack.push('end');
+      } else if(t.value==='repeat'){
+        stack.push('until');
+      } else if(t.value==='end'){
+        if(stack.length && stack[stack.length-1]==='end'){ stack.pop(); justClosedEnd = true; }
+      } else if(t.value==='until'){
+        if(stack.length && stack[stack.length-1]==='until') stack.pop();
+      }
+    }
+
+    const atTop = stack.length===0 && bracketDepth===0;
+    if(atTop){
+      if(t.type==='PUNCT' && t.value===';'){
+        chunks.push(current); current=[];
+      } else if(justClosedEnd){
+        chunks.push(current); current=[];
+      }
+    }
+  }
+  if(current.length) chunks.push(current);
+  return chunks.filter(c=>c.some(t=>!(t.type==='PUNCT'&&t.value===';')));
+}
+
+function chunkHasTopLevelReturn(chunk){
+  const stack = [];
+  let expectingDo = false;
+  for(const t of chunk){
+    if(t.type!=='KEYWORD') continue;
+    if(t.value==='while' || t.value==='for'){ stack.push('end'); expectingDo=true; }
+    else if(t.value==='do'){ if(expectingDo){ expectingDo=false; } else { stack.push('end'); } }
+    else if(t.value==='if' || t.value==='function'){ stack.push('end'); }
+    else if(t.value==='repeat'){ stack.push('until'); }
+    else if(t.value==='end'){ if(stack.length && stack[stack.length-1]==='end') stack.pop(); }
+    else if(t.value==='until'){ if(stack.length && stack[stack.length-1]==='until') stack.pop(); }
+    else if(t.value==='return' && stack.length===0){ return true; }
+  }
+  return false;
+}
+
+function flattenTopLevel(tokens, gen){
+  const chunks = splitTopLevelChunks(tokens);
+  if(chunks.length < 3){
+    return { tokens, chunkCount: 0 };
+  }
+
+  const usedIds = new Set();
+  const ids = chunks.map(()=>{
+    let id;
+    do { id = 1000 + Math.floor(Math.random()*8999); } while(usedIds.has(id));
+    usedIds.add(id);
+    return id;
+  });
+  const EXIT = -1;
+  const stateVar = gen();
+
+  const order = ids.map((_,i)=>i);
+  shuffleArray(order);
+
   const out = [];
+  out.push({type:'RAW', value:`local ${stateVar}=${ids[0]}\nwhile ${stateVar}~=${EXIT} do\n`});
 
-  // Simple flattening: wrap top-level if/while/for blocks in a state machine
-  // This is a simplified version that handles sequential blocks.
-  // For a full implementation we'd need proper AST parsing, but this
-  // gives the visual "flattened" effect that confuses readers.
+  order.forEach((chunkIdx, pos)=>{
+    const id = ids[chunkIdx];
+    const chunkTokens = chunks[chunkIdx];
+    const isLastChunk = chunkIdx === chunks.length-1;
+    const terminal = isLastChunk && chunkHasTopLevelReturn(chunkTokens);
 
-  let i = 0;
-  const stateVar = '__s' + Math.floor(Math.random()*9000+1000);
-  const dispatchVar = '__d' + Math.floor(Math.random()*9000+1000);
-
-  while (i < tokens.length) {
-    const t = tokens[i];
-
-    // Detect "if ... then" blocks and wrap them in state machine
-    if (t.type === 'KEYWORD' && t.value === 'if') {
-      // Find the matching "end"
-      let depth = 0;
-      let j = i;
-      let hasElse = false;
-      while (j < tokens.length) {
-        if (tokens[j].type === 'KEYWORD') {
-          if (tokens[j].value === 'if') depth++;
-          else if (tokens[j].value === 'end') {
-            depth--;
-            if (depth === 0) break;
-          } else if (tokens[j].value === 'else' || tokens[j].value === 'elseif') {
-            hasElse = true;
-          }
-        }
-        j++;
-      }
-
-      if (j < tokens.length && depth === 0) {
-        // Extract the if block
-        const blockTokens = tokens.slice(i, j + 1);
-
-        // Generate flattened version
-        const stateId1 = Math.floor(Math.random()*1000);
-        const stateId2 = stateId1 + 1;
-
-        // We wrap the if in a simple dispatch:
-        // __s = 0; while true do
-        //   if __s == 0 then
-        //     if <original condition> then ... end
-        //     __s = 1
-        //   elseif __s == 1 then
-        //     break
-        //   end
-        // end
-
-        out.push({type:'RAW', value: `local ${stateVar}=0;while true do if ${stateVar}==0 then `});
-        // Push the if block
-        for (const bt of blockTokens) out.push(bt);
-        out.push({type:'RAW', value: ` ${stateVar}=1 elseif ${stateVar}==1 then break end end;`});
-
-        flattenCount++;
-        i = j + 1;
-        continue;
-      }
+    const kw = pos===0 ? 'if' : 'elseif';
+    out.push({type:'RAW', value:`${kw} ${stateVar}==${id} then\n`});
+    out.push(...chunkTokens);
+    if(!terminal){
+      const nextId = chunkIdx+1 < ids.length ? ids[chunkIdx+1] : EXIT;
+      out.push({type:'RAW', value:`\n${stateVar}=${nextId}\n`});
     }
+  });
 
-    out.push(t);
-    i++;
-  }
-
-  return { tokens: out, count: flattenCount };
+  out.push({type:'RAW', value:'end\nend\n'});
+  return { tokens: out, chunkCount: chunks.length };
 }
 
-/* ---------- OPAQUE PREDICATES ---------- */
-function insertOpaquePredicates(tokens, gen, density){
-  const out = [];
-  for (let i = 0; i < tokens.length; i++) {
-    out.push(tokens[i]);
-
-    // Insert opaque predicate before certain statements
-    const t = tokens[i];
-    if (t.type === 'KEYWORD' && ['then', 'do', 'else'].includes(t.value)) {
-      if (Math.random() < density) {
-        const v = gen();
-        // Always-true opaque predicate: (x*x >= 0) is always true for integers
-        // but looks like a real condition
-        const opaque = `local ${v}=(${Math.floor(Math.random()*100)+1});if ${v}*${v} < 0 then return end;`;
-        out.push({ type: 'RAW', value: opaque });
-      }
-    }
-  }
-  return out;
-}
-
-/* ---------- ANTI-TAMPER ---------- */
-function insertAntiTamper(tokens, gen){
-  const checks = [
-    // Check that basic globals exist (if someone replaced them, fail)
-    `local _g=getfenv and getfenv() or _G;if type(_g.print)~="function" then return end;`,
-    // Check that string manipulation works
-    `if type(("%s"):rep(1))~="string" then return end;`,
-    // Check that math functions work
-    `if math.floor(3.7)~=3 then return end;`,
-    // Check that table.insert exists
-    `if type(table.insert)~="function" then return end;`,
-    // Check that we can call load
-    `if type((loadstring or load))~="function" then return end;`
-  ];
-
-  const antiTamperCode = checks.join('\n');
-  tokens.unshift({ type: 'RAW', value: antiTamperCode + '\n' });
-  return checks.length;
-}
-
-/* ---------- VM COMPILER ---------- */
-// Custom opcode set for our Lua VM
-const OP = {
-  LOADK: 1,    // load constant
-  LOADNIL: 2,  // load nil
-  LOADBOOL: 3, // load boolean
-  MOVE: 4,     // move register
-  GETGLOBAL: 5,// get global
-  SETGLOBAL: 6,// set global
-  GETTABLE: 7, // table access
-  SETTABLE: 8, // table set
-  NEWTABLE: 9, // create table
-  ADD: 10, SUB: 11, MUL: 12, DIV: 13, MOD: 14, POW: 15,
-  CONCAT: 16,  // .. operator
-  EQ: 17, NEQ: 18, LT: 19, GT: 20, LE: 21, GE: 22,
-  AND: 23, OR: 24, NOT: 25,
-  NEG: 26,     // unary minus
-  LEN: 27,     // # operator
-  CALL: 28,    // function call
-  RETURN: 29,
-  JUMP: 30,    // unconditional jump
-  JUMPIF: 31,  // jump if false
-  JUMPIFNOT: 32, // jump if true
-  CLOSURE: 33, // create function closure
-  SETLIST: 34, // set list elements
-  FORPREP: 35, // numeric for preparation
-  FORLOOP: 36, // numeric for loop
-  TFORCALL: 37,// generic for call
-  TFORLOOP: 38,// generic for loop
-  CLOSE: 39,   // close upvalues
-  VARARG: 40   // ...
-};
-
-function compileToVM(tokens, style) {
-  const gen = makeNameGen(style);
-  const constants = [];
-  const instructions = [];
-  const functions = [];
-  let regCounter = 0;
-  const maxRegs = 50;
-
-  function addConst(val) {
-    constants.push(val);
-    return constants.length - 1;
-  }
-
-  function emit(op, a, b, c) {
-    instructions.push({ op, a: a||0, b: b||0, c: c||0 });
-  }
-
-  // Very simplified compiler — handles basic expressions and statements
-  // This is a proof-of-concept VM layer.
-  let pc = 0;
-  let i = 0;
-
-  while (i < tokens.length && tokens[i].type !== 'EOF') {
-    const t = tokens[i];
-
-    // Skip junk / raw tokens in VM mode (they get included as-is)
-    if (t.type === 'RAW') {
-      i++;
-      continue;
-    }
-
-    // Handle local variable declarations
-    if (t.type === 'KEYWORD' && t.value === 'local') {
-      i++;
-      while (i < tokens.length && tokens[i].type === 'NAME') {
-        const name = tokens[i].value;
-        // For simplicity, treat locals as globals in VM mode
-        // (a real VM would use registers)
-        i++;
-        if (tokens[i] && tokens[i].value === '=') {
-          i++;
-          // Compile the expression
-          const { code, reg } = compileExpr(tokens, i);
-          i = reg;
-          emit(OP.SETGLOBAL, 0, addConst(name), reg);
-        } else {
-          emit(OP.SETGLOBAL, 0, addConst(name), addConst(null));
-        }
-        if (tokens[i] && tokens[i].value === ',') i++;
-        else break;
-      }
-      continue;
-    }
-
-    // Handle function calls and other statements
-    if (t.type === 'NAME' || (t.type === 'KEYWORD' && t.value === 'print')) {
-      const name = t.value;
-      i++;
-      if (tokens[i] && tokens[i].value === '(') {
-        i++;
-        // Parse arguments
-        const args = [];
-        while (i < tokens.length && tokens[i].value !== ')') {
-          if (tokens[i].type === 'STRING') {
-            args.push(addConst(unescapeLuaString(tokens[i].value).map(String.fromCharCode).join('')));
-            i++;
-          } else if (tokens[i].type === 'NUMBER') {
-            args.push(addConst(parseFloat(tokens[i].value)));
-            i++;
-          } else if (tokens[i].type === 'NAME') {
-            args.push(addConst(tokens[i].value));
-            i++;
-          } else {
-            i++;
-          }
-          if (tokens[i] && tokens[i].value === ',') i++;
-        }
-        if (tokens[i] && tokens[i].value === ')') i++;
-        emit(OP.GETGLOBAL, 0, addConst(name), 0);
-        emit(OP.CALL, 0, addConst(args.length), 0);
-      }
-      continue;
-    }
-
-    i++;
-  }
-
-  // Add final return
-  emit(OP.RETURN, 0, 0, 0);
-
-  return { constants, instructions, functions, maxRegs: regCounter + 10 };
-}
-
-function compileExpr(tokens, startIdx) {
-  // Simplified expression compiler — handles literals and simple names
-  let i = startIdx;
-  const t = tokens[i];
-  if (!t) return { code: '', reg: 0 };
-
-  if (t.type === 'STRING') {
-    const s = unescapeLuaString(t.value).map(c => String.fromCharCode(c)).join('');
-    return { code: `"${s}"`, reg: i + 1 };
-  }
-  if (t.type === 'NUMBER') {
-    return { code: t.value, reg: i + 1 };
-  }
-  if (t.type === 'NAME') {
-    return { code: t.value, reg: i + 1 };
-  }
-  return { code: 'nil', reg: i + 1 };
-}
-
-function generateVMInterpreter(vmData, style) {
-  const gen = makeNameGen(style);
-  const instName = gen();
-  const constName = gen();
-  const pcName = gen();
-  const stackName = gen();
-  const globalsName = gen();
-
-  // Generate the VM interpreter in Lua
-  let lua = `local ${constName}={${JSON.stringify(vmData.constants)}}\n`;
-  lua += `local ${instName}={${JSON.stringify(vmData.instructions)}}\n`;
-  lua += `local ${globalsName}=_G\n`;
-  lua += `local ${stackName}={}\n`;
-  lua += `local ${pcName}=1\n`;
-  lua += `while ${pcName}<=#${instName} do\n`;
-  lua += `  local ${instName}_=${instName}[${pcName}]\n`;
-  lua += `  local ${pcName}_op=${instName}_.op\n`;
-  lua += `  local ${pcName}_a=${instName}_.a\n`;
-  lua += `  local ${pcName}_b=${instName}_.b\n`;
-  lua += `  local ${pcName}_c=${instName}_.c\n`;
-  lua += `  if ${pcName}_op==1 then\n`;
-  lua += `    ${stackName}[${pcName}_a]=${constName}[${pcName}_b+1]\n`;
-  lua += `  elseif ${pcName}_op==5 then\n`;
-  lua += `    local _n=${constName}[${pcName}_b+1]\n`;
-  lua += `    ${stackName}[${pcName}_a]=${globalsName}[_n]\n`;
-  lua += `  elseif ${pcName}_op==6 then\n`;
-  lua += `    local _n=${constName}[${pcName}_b+1]\n`;
-  lua += `    ${globalsName}[_n]=${stackName}[${pcName}_c]\n`;
-  lua += `  elseif ${pcName}_op==28 then\n`;
-  lua += `    local _n=${stackName}[${pcName}_a]\n`;
-  lua += `    local _args={}\n`;
-  lua += `    for _i=1,${pcName}_b do _args[_i]=${stackName}[${pcName}_c+_i-1] end\n`;
-  lua += `    if _n then _n(table.unpack(_args)) end\n`;
-  lua += `  elseif ${pcName}_op==29 then\n`;
-  lua += `    return ${stackName}[${pcName}_a]\n`;
-  lua += `  elseif ${pcName}_op==30 then\n`;
-  lua += `    ${pcName}=${pcName}_b\n`;
-  lua += `    ${pcName}=${pcName}-1\n`;
-  lua += `  end\n`;
-  lua += `  ${pcName}=${pcName}+1\n`;
-  lua += `end\n`;
-
-  return lua;
-}
-
-/* ---------- EMITTER ---------- */
 function isWordChar(c){ return !!c && /[A-Za-z0-9_]/.test(c); }
 const OPCHARS = new Set(['+','-','*','/','%','^','#','&','~','|','<','>','=',':','.']);
 function needsSpace(prev, cur){
@@ -976,16 +887,25 @@ function strToBytes(s){
   return out;
 }
 
+/* ---- loader with rotating-key XOR + checksum-based anti-tamper check ---- */
 function buildLoader(finalSrc, style){
   const gen = makeNameGen(style);
-  const dataName = gen(), keyName = gen(), bufName = gen(), srcName=gen(), fnName=gen(), idxName=gen();
-  const keyLen = 6 + Math.floor(Math.random()*4);
-  const key = Array.from({length:keyLen}, ()=> Math.floor(Math.random()*250)+1);
+  const dataName=gen(), keyName=gen(), bufName=gen(), srcName=gen(), fnName=gen(), idxName=gen(), sumName=gen(), chkName=gen();
+
+  const key = randKey(6,9);
   const bytes = strToBytes(finalSrc);
   const enc = bytes.map((b,i)=> b ^ key[i % key.length]);
+
+  let checksum = 0;
+  for(const b of enc) checksum = (checksum + b) % 65521;
+
   const loader =
 `local ${keyName}={${key.join(',')}}
 local ${dataName}={${enc.join(',')}}
+local ${chkName}=${checksum}
+local ${sumName}=0
+for ${idxName}=1,#${dataName} do ${sumName}=(${sumName}+${dataName}[${idxName}])%65521 end
+if ${sumName}~=${chkName} then error("integrity check failed") end
 local ${bufName}={}
 for ${idxName}=1,#${dataName} do
 ${bufName}[${idxName}]=string.char(bit32.bxor(${dataName}[${idxName}], ${keyName}[((${idxName}-1)%#${keyName})+1]))
@@ -996,102 +916,41 @@ if ${fnName} then ${fnName}() else error("payload failed to load") end`;
   return loader;
 }
 
-/* ---------- MAIN OBFUSCATE ---------- */
 function obfuscate(src, opts){
   const t0 = performance.now();
-  let tokens = tokenize(src);
+  let tokens = tokenize(src); // comment stripping happens implicitly in the tokenizer
 
-  // 1. Rename
   let renamedCount = 0;
   if(opts.rename){
     renamedCount = renamePass(tokens, opts.style);
   }
 
-  // 2. Multi-layer string encryption
   let stringCount = 0;
   if(opts.strings){
-    const key1 = [];
-    const key2 = [];
-    const klen1 = 4 + Math.floor(Math.random()*5);
-    const klen2 = 4 + Math.floor(Math.random()*5);
-    for(let i=0;i<klen1;i++) key1.push(Math.floor(Math.random()*250)+1);
-    for(let i=0;i<klen2;i++) key2.push(Math.floor(Math.random()*250)+1);
     const gen = makeNameGen(opts.style);
-    const decoderName = gen();
-    const keyArrName = gen();
-    stringCount = encryptStringsPass(tokens, key1, key2, decoderName);
-    if(stringCount>0){
-      // Generate a decoder that applies both layers in reverse
-      const decoderDef = 
-`local ${keyArrName}1={${key1.join(',')}}
-local ${keyArrName}2={${key2.join(',')}}
-local function ${decoderName}(t) 
-  local r1={} 
-  for i=1,#t do 
-    r1[i]=bit32.bxor(t[i], ${keyArrName}2[((i-1)%#${keyArrName}2)+1]) 
-  end 
-  local r2={}
-  for i=1,#r1 do 
-    r2[i]=string.char(bit32.bxor(r1[i], ${keyArrName}1[((i-1)%#${keyArrName}1)+1])) 
-  end 
-  return table.concat(r2) 
-end
-`;
-      tokens.unshift({type:'RAW', value: decoderDef});
-    }
+    stringCount = encryptStringsPassPooled(tokens, gen);
   }
 
-  // 3. Number mangling
   let numCount = 0;
   if(opts.numbers){
     numCount = obfNumbersPass(tokens);
   }
 
-  // 4. Opaque predicates
-  if(opts.opaque){
-    const gen = makeNameGen(opts.style);
-    tokens = insertOpaquePredicates(tokens, gen, opts.junkDensity);
-  }
-
-  // 5. Control-flow flattening
-  let flattenCount = 0;
-  if(opts.flatten){
-    const result = flattenControlFlow(tokens);
-    tokens = result.tokens;
-    flattenCount = result.count;
-  }
-
-  // 6. Junk injection
   if(opts.junk){
     const gen = makeNameGen(opts.style);
     tokens = insertJunkPass(tokens, gen, opts.junkDensity);
   }
 
-  // 7. Anti-tamper
-  if(opts.antiTamper){
+  let chunkCount = 0;
+  if(opts.flatten){
     const gen = makeNameGen(opts.style);
-    insertAntiTamper(tokens, gen);
+    const res = flattenTopLevel(tokens, gen);
+    tokens = res.tokens;
+    chunkCount = res.chunkCount;
   }
 
-  // 8. Emit intermediate Lua
   let body = emit(tokens);
 
-  // 9. VM virtualization (optional)
-  let vmInstructionCount = 0;
-  if(opts.vm){
-    // Re-tokenize the flattened code for VM compilation
-    const vmTokens = tokenize(body);
-    const vmData = compileToVM(vmTokens, opts.style);
-    vmInstructionCount = vmData.instructions.length;
-    
-    // Generate VM interpreter
-    const vmInterpreter = generateVMInterpreter(vmData, opts.style);
-    
-    // Wrap VM data + interpreter
-    body = `-- OPAQ VM\n${vmInterpreter}`;
-  }
-
-  // 10. Loader wrapping
   if(opts.loader){
     body = buildLoader(body, opts.style);
   }
@@ -1099,8 +958,7 @@ end
   const t1 = performance.now();
   return {
     code: body,
-    renamedCount, stringCount, numCount,
-    flattenCount, vmInstructionCount,
+    renamedCount, stringCount, numCount, chunkCount,
     ms: Math.max(1, Math.round(t1-t0))
   };
 }
@@ -1176,12 +1034,8 @@ runBtn.addEventListener('click', ()=>{
     junk: document.getElementById('optJunk').checked,
     junkDensity: parseFloat(document.getElementById('junkDensity').value),
     flatten: document.getElementById('optFlatten').checked,
-    opaque: document.getElementById('optOpaque').checked,
-    vm: document.getElementById('optVM').checked,
-    antiTamper: document.getElementById('optAntiTamper').checked,
     loader: document.getElementById('optLoader').checked,
-    style: document.getElementById('nameStyle').value,
-    vmLayers: parseInt(document.getElementById('vmLayers').value)
+    style: document.getElementById('nameStyle').value
   };
 
   let result;
@@ -1204,8 +1058,7 @@ runBtn.addEventListener('click', ()=>{
   document.getElementById('statNames').textContent = result.renamedCount;
   document.getElementById('statStrings').textContent = result.stringCount;
   document.getElementById('statNums').textContent = result.numCount;
-  document.getElementById('statFlatten').textContent = result.flattenCount;
-  document.getElementById('statVM').textContent = result.vmInstructionCount;
+  document.getElementById('statChunks').textContent = result.chunkCount;
   document.getElementById('statTime').textContent = result.ms + 'ms';
 });
 
