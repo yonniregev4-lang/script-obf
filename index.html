@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Luau Obfuscator</title>
+<style>
+  :root {
+    --bg: #0b0f14;
+    --panel: #111820;
+    --panel-2: #0d131a;
+    --border: #22303d;
+    --text: #d7e2ec;
+    --muted: #7d8fa1;
+    --accent: #4cc2ff;
+    --accent-2: #2f9e6e;
+    --danger: #e5534b;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: radial-gradient(1200px 600px at 20% -10%, #16222e 0%, var(--bg) 60%);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 28px 20px 60px; }
+  header h1 {
+    margin: 0 0 4px;
+    font-size: 24px;
+    letter-spacing: -0.02em;
+  }
+  header h1 span { color: var(--accent); }
+  header p { margin: 0 0 22px; color: var(--muted); }
+
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  button {
+    font: inherit;
+    font-weight: 600;
+    padding: 9px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: #1a232d;
+    color: var(--text);
+    cursor: pointer;
+    transition: background .12s, border-color .12s, transform .05s;
+  }
+  button:hover:not(:disabled) { background: #223040; border-color: #31465a; }
+  button:active:not(:disabled) { transform: translateY(1px); }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #04141f; }
+  button.primary:hover:not(:disabled) { background: #6fd0ff; border-color: #6fd0ff; }
+  button.good { background: var(--accent-2); border-color: var(--accent-2); color: #04170e; }
+  button.good:hover:not(:disabled) { background: #3cbb85; border-color: #3cbb85; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+  @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .panel h2 {
+    margin: 0 0 10px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .09em;
+    color: var(--muted);
+    font-weight: 700;
+  }
+
+  .drop {
+    border: 1.5px dashed #2b3d4e;
+    border-radius: 9px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    color: var(--muted);
+    font-size: 13px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .15s, background .15s, color .15s;
+    user-select: none;
+  }
+  .drop:hover, .drop.over { border-color: var(--accent); color: var(--accent); background: rgba(76,194,255,.06); }
+  .drop strong { color: var(--text); font-weight: 600; }
+  .drop.over strong { color: var(--accent); }
+
+  textarea {
+    width: 100%;
+    flex: 1;
+    min-height: 360px;
+    resize: vertical;
+    background: var(--panel-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 12px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    font-size: 12.5px;
+    line-height: 1.55;
+    tab-size: 2;
+    outline: none;
+    white-space: pre;
+    overflow: auto;
+  }
+  textarea:focus { border-color: #35506a; }
+  textarea[readonly] { color: #a9c4da; }
+
+  .options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin: 16px 0 0;
+    padding: 12px 14px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+  .options label {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: var(--muted);
+    font-size: 13px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .options label:hover { color: var(--text); }
+  .options input { accent-color: var(--accent); width: 15px; height: 15px; cursor: pointer; }
+
+  .status {
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--muted);
+    min-height: 20px;
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+  }
+  .status.err { color: var(--danger); }
+  .status.ok { color: #56d364; }
+
+  .filename {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .filename input {
+    flex: 1;
+    min-width: 0;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: var(--text);
+    padding: 7px 10px;
+    font: inherit;
+    font-size: 13px;
+    outline: none;
+  }
+  .filename input:focus { border-color: #35506a; }
+
+  footer { margin-top: 26px; color: #55697c; font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Luau <span>Obfuscator</span></h1>
+    <p>Paste Lua / Luau source or drop a <code>.lua</code> / <code>.txt</code> file, then download the obfuscated result. Everything runs locally in your browser — nothing is uploaded.</p>
+  </header>
+
+  <div class="toolbar">
+    <button id="runBtn" class="primary">⚙ Obfuscate</button>
+    <button id="downloadBtn" class="good" disabled>⬇ Download .lua</button>
+    <button id="copyBtn" disabled>⧉ Copy output</button>
+    <button id="clearBtn">✕ Clear</button>
+    <span class="status" id="status"></span>
+  </div>
+
+  <div class="options">
+    <label><input type="checkbox" id="optRename" checked> Rename locals</label>
+    <label><input type="checkbox" id="optStrings" checked> Encode strings</label>
+    <label><input type="checkbox" id="optNumbers" checked> Encode numbers</label>
+    <label><input type="checkbox" id="optComments" checked> Strip comments</label>
+    <label><input type="checkbox" id="optJunk" checked> Insert junk</label>
+  </div>
+
+  <div class="grid" style="margin-top:18px">
+
+    <div class="panel" id="inputPanel">
+      <h2>Input</h2>
+      <div class="drop" id="drop">
+        <strong>Click to choose a file</strong> or drag &amp; drop it here
+        <input type="file" id="fileInput" accept=".lua,.luau,.txt,text/plain" hidden>
+      </div>
+      <textarea id="input" spellcheck="false" placeholder="-- paste your Luau code here
+local function greet(name)
+    print(&quot;Hello, &quot; .. name .. &quot;!&quot;)
+end
+greet(&quot;world&quot;)"></textarea>
+    </div>
+
+    <div class="panel">
+      <h2>Output</h2>
+      <div class="filename">
+        <span>File name:</span>
+        <input type="text" id="outName" value="obfuscated.lua" spellcheck="false">
+      </div>
+      <textarea id="output" spellcheck="false" readonly placeholder="Obfuscated code will appear here…"></textarea>
+    </div>
+
+  </div>
+
+  <footer>
+    Best-effort, regex-based transformation — always syntax-check the output before using it.
+  </footer>
+
+</div>
+
+<script>
+"use strict";
+
+/* =========================================================================
+   Tokenizer
+   ========================================================================= */
+
+const KEYWORDS = new Set([
+  "and","break","do","else","elseif","end","false","for",
+  "function","if","in","local","nil","not","or","repeat",
+  "return","then","true","until","while",
+  "continue","export","type","typeof"
+]);
+
+const PROTECTED = new Set([...KEYWORDS,
+  "self","_G","_VERSION",
+  "print","warn","error","assert","pcall","xpcall","select",
+  "type","typeof","tostring","tonumber","pairs","ipairs","next",
+  "rawget","rawset","rawequal","rawlen","setmetatable","getmetatable",
+  "unpack","require","collectgarbage","loadstring","load",
+  "string","table","math","os","coroutine","bit32","utf8","debug",
+  "task","wait","spawn","delay","tick","elapsedTime",
+  "game","workspace","script","shared","plugin",
+  "Instance","Vector2","Vector3","CFrame","Color3","UDim","UDim2",
+  "Enum","Ray","Region3","BrickColor","TweenInfo","NumberSequence",
+  "ColorSequence","NumberRange","Random","PhysicalProperties"
+]);
+
+const TOKEN_SPEC = [
+  ["LONGCOMMENT", String.raw`--\[(?<lc_eq>=*)\[[\s\S]*?\]\k<lc_eq>\]`],
+  ["LINECOMMENT", String.raw`--[^\n]*`],
+  ["LONGSTRING",  String.raw`\[(?<ls_eq>=*)\[[\s\S]*?\]\k<ls_eq>\]`],
+  ["STRING",      String.raw`"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'`],
+  ["NUMBER",      String.raw`0[xX][0-9a-fA-F]+|\d+\.\d+(?:[eE][+-]?\d+)?|\d+(?:[eE][+-]?\d+)?`],
+  ["IDENT",       String.raw`[A-Za-z_][A-Za-z0-9_]*`],
+  ["NEWLINE",     String.raw`\n`],
+  ["WS",          String.raw`[ \t]+`],
+  ["OTHER",       String.raw`.`]
+];
+
+const TOKEN_NAMES = TOKEN_SPEC.map(t => t[0]);
+
+const MASTER_RE = new RegExp(
+  TOKEN_SPEC.map(([name, pat]) => `(?<${name}>${pat})`).join("|"),
+  "gs"
+);
+
+function tokenize(src) {
+  const tokens = [];
+  MASTER_RE.lastIndex = 0;
+  let m;
+  while ((m = MASTER_RE.exec(src)) !== null) {
+    if (m[0] === "") { MASTER_RE.lastIndex++; continue; }
+
+    let kind = null;
+    for (const n of TOKEN_NAMES) {
+      if (m.groups[n] !== undefined) { kind = n; break; }
+    }
+    let value = m[0];
+    if (kind === "IDENT" && KEYWORDS.has(value)) kind = "KEYWORD";
+    tokens.push([kind, value]);
+  }
+  return tokens;
+}
+
+/* =========================================================================
+   Lua string literal decoding
+   ========================================================================= */
+
+const ESCAPES = {
+  n: "\n", t: "\t", r: "\r", a: "\x07", b: "\b",
+  f: "\f", v: "\v", "\\": "\\", '"': '"', "'": "'", "\n": "\n"
+};
+
+function isDigit(c) { return c >= "0" && c <= "9"; }
+
+function unescapeLuaString(literal) {
+  const body = literal.slice(1, -1);
+  let out = "";
+  let i = 0;
+  const n = body.length;
+
+  while (i < n) {
+    const c = body[i];
+    if (c === "\\") {
+      if (i + 1 >= n) return null;
+      const nxt = body[i + 1];
+
+      if (isDigit(nxt)) {
+        let j = i + 1, digits = "";
+        while (j < n && isDigit(body[j]) && digits.length < 3) {
+          digits += body[j];
+          j++;
+        }
+        out += String.fromCharCode(parseInt(digits, 10) % 256);
+        i = j;
+        continue;
+      }
+
+      if (nxt === "x" && i + 3 < n) {
+        const hex = body.slice(i + 2, i + 4);
+        if (/^[0-9a-fA-F]{2}$/.test(hex)) {
+          out += String.fromCharCode(parseInt(hex, 16));
+          i += 4;
+          continue;
+        }
+        return null;
+      }
+
+      if (Object.prototype.hasOwnProperty.call(ESCAPES, nxt)) {
+        out += ESCAPES[nxt];
+        i += 2;
+        continue;
+      }
+      return null; // unknown escape — don't risk mangling it
+    }
+    out += c;
+    i++;
+  }
+  return out;
+}
+
+/* =========================================================================
+   Name generation
+   ========================================================================= */
+
+const ALPHABET = "abcdefghijklmnopqrstuvwxyz";
+const usedNames = new Set();
+
+function newName(prefix = "_") {
+  for (;;) {
+    let cand = prefix;
+    for (let i = 0; i < 6; i++) {
+      cand += ALPHABET[(Math.random() * 26) | 0];
+    }
+    if (!usedNames.has(cand) && !PROTECTED.has(cand)) {
+      usedNames.add(cand);
+      return cand;
+    }
+  }
+}
+
+/* =========================================================================
+   Local / parameter collection
+   ========================================================================= */
+
+const LOCAL_DECL_RE  = /\blocal\s+((?:[A-Za-z_][A-Za-z0-9_]*\s*(?:,\s*)?)+)(?=\s*(?:=|$|;|\n))/g;
+const FUNC_PARAMS_RE = /\bfunction\b[^()]*\(([^)]*)\)/g;
+const LOCAL_FUNC_RE  = /\blocal\s+function\s+([A-Za-z_][A-Za-z0-9_]*)/g;
+
+function collectRenameTargets(src) {
+  const targets = new Set();
+
+  for (const m of src.matchAll(LOCAL_DECL_RE)) {
+    for (const raw of m[1].split(",")) {
+      const n = raw.trim();
+      if (n && !PROTECTED.has(n)) targets.add(n);
+    }
+  }
+
+  for (const m of src.matchAll(LOCAL_FUNC_RE)) {
+    const n = m[1];
+    if (n && !PROTECTED.has(n)) targets.add(n);
+  }
+
+  for (const m of src.matchAll(FUNC_PARAMS_RE)) {
+    for (const raw of m[1].split(",")) {
+      const p = raw.trim();
+      if (p && p !== "..." && !PROTECTED.has(p)) targets.add(p);
+    }
+  }
+
+  return targets;
+}
+
+/* =========================================================================
+   Number obfuscation
+   ========================================================================= */
+
+function obfuscateNumber(literal) {
+  const lower = literal.toLowerCase();
+  if (lower.startsWith("0x")) return null;        // leave hex alone
+  if (literal.includes(".") || lower.includes("e")) return null; // leave floats alone
+
+  const val = parseInt(literal, 10);
+  if (!Number.isFinite(val)) return null;
+
+  const a = 1 + ((Math.random() * 5000) | 0);
+  if (Math.random() < 0.5) {
+    const b = val - a;
+    return `(${a}+(${b}))`;
+  }
+  const b = val + a;
+  return `(${b}-(${a}))`;
+}
+
+/* =========================================================================
+   Junk
+   ========================================================================= */
+
+function makeJunkBlock(count = 3) {
+  const lines = [];
+  for (let i = 0; i < count; i++) {
+    const n1 = newName("_");
+    const v1 = 1 + ((Math.random() * 999) | 0);
+    const v2 = 1 + ((Math.random() * 999) | 0);
+    const mod = 2 + ((Math.random() * 96) | 0);
+    lines.push(`local ${n1} = (${v1}*${v2}) % ${mod}`);
+  }
+  return lines.join("\n");
+}
+
+/* =========================================================================
+   Renderer
+   ========================================================================= */
+
+const ALNUM_END   = /[A-Za-z0-9_]$/;
+const ALNUM_START = /^[A-Za-z0-9_]/;
+
+function render(tokens) {
+  const parts = [];
+  let prevVal = "";
+
+  for (const [kind, value] of tokens) {
+    if (kind === "WS" || kind === "NEWLINE") {
+      if (parts.length && parts[parts.length - 1] !== " ") parts.push(" ");
+      prevVal = " ";
+      continue;
+    }
+    if (prevVal && ALNUM_END.test(prevVal) && ALNUM_START.test(value)) {
+      parts.push(" ");
+    }
+    parts.push(value);
+    prevVal = value;
+  }
+  return parts.join("");
+}
+
+/* =========================================================================
+   Main transform
+   ========================================================================= */
+
+function obfuscate(src, opts) {
+  const rename        = opts.rename        !== false;
+  const encodeStrings = opts.encodeStrings !== false;
+  const encodeNumbers = opts.encodeNumbers !== false;
+  const stripComments = opts.stripComments !== false;
+  const insertJunk    = opts.insertJunk    !== false;
+
+  usedNames.clear();
+
+  const targets = rename ? collectRenameTargets(src) : new Set();
+  const renameMap = new Map();
+  for (const t of targets) renameMap.set(t, newName());
+
+  const decodeFn = newName("_");
+  const tokens = tokenize(src);
+
+  const outTokens = [];
+
+  for (const [kind, value] of tokens) {
+    if (kind === "LONGCOMMENT" || kind === "LINECOMMENT") {
+      if (!stripComments) outTokens.push([kind, value]);
+      continue;
+    }
+
+    if (kind === "STRING" && encodeStrings) {
+      const decoded = unescapeLuaString(value);
+      if (decoded === null) {
+        outTokens.push([kind, value]);
+      } else {
+        const codes = [];
+        for (const ch of decoded) {
+          const cp = ch.codePointAt(0);
+          codes.push(cp > 255 ? 63 : cp); // latin-1 "replace", like the Python version
+        }
+        outTokens.push(["CALL", `${decodeFn}({${codes.join(",")}})`]);
+      }
+      continue;
+    }
+
+    if (kind === "NUMBER" && encodeNumbers) {
+      const obf = obfuscateNumber(value);
+      outTokens.push(obf ? ["CALL", obf] : [kind, value]);
+      continue;
+    }
+
+    if (kind === "IDENT" && renameMap.has(value)) {
+      outTokens.push(["IDENT", renameMap.get(value)]);
+      continue;
+    }
+
+    outTokens.push([kind, value]);
+  }
+
+  const body = render(outTokens);
+
+  let header = "";
+  if (encodeStrings) {
+    header +=
+      `local function ${decodeFn}(t) local s={} for i=1,#t do s[i]=string.char(t[i]) end return table.concat(s) end\n`;
+  }
+  if (insertJunk) {
+    header += makeJunkBlock() + "\n";
+  }
+
+  return header + body;
+}
+
+/* =========================================================================
+   UI
+   ========================================================================= */
+
+const $ = id => document.getElementById(id);
+
+const inputEl      = $("input");
+const outputEl     = $("output");
+const statusEl     = $("status");
+const runBtn       = $("runBtn");
+const downloadBtn  = $("downloadBtn");
+const copyBtn      = $("copyBtn");
+const clearBtn     = $("clearBtn");
+const dropEl       = $("drop");
+const fileInput    = $("fileInput");
+const outNameEl    = $("outName");
+
+let hasOutput = false;
+
+function setStatus(msg, cls = "") {
+  statusEl.textContent = msg;
+  statusEl.className = "status" + (cls ? " " + cls : "");
+}
+
+function baseName(name) {
+  return name.replace(/\.[^./\\]+$/, "") || "script";
+}
+
+function loadFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    inputEl.value = String(reader.result);
+    outNameEl.value = baseName(file.name) + ".obf.lua";
+    setStatus(`Loaded ${file.name} (${file.size} bytes)`, "ok");
+  };
+  reader.onerror = () => setStatus("Could not read that file.", "err");
+  reader.readAsText(file, "utf-8");
+}
+
+/* --- file picker --- */
+dropEl.addEventListener("click", () => fileInput.click());
+fileInput.addEventListener("change", e => {
+  loadFile(e.target.files[0]);
+  fileInput.value = "";
+});
+
+/* --- drag & drop --- */
+["dragenter", "dragover"].forEach(ev =>
+  dropEl.addEventListener(ev, e => {
+    e.preventDefault();
+    dropEl.classList.add("over");
+  })
+);
+["dragleave", "drop"].forEach(ev =>
+  dropEl.addEventListener(ev, e => {
+    e.preventDefault();
+    dropEl.classList.remove("over");
+  })
+);
+dropEl.addEventListener("drop", e => {
+  const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+  loadFile(f);
+});
+
+/* also allow dropping anywhere on the page */
+window.addEventListener("dragover", e => e.preventDefault());
+window.addEventListener("drop", e => {
+  e.preventDefault();
+  if (e.target.closest && e.target.closest("#drop")) return;
+  const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+  if (f) loadFile(f);
+});
+
+/* --- run --- */
+function run() {
+  const src = inputEl.value;
+  if (!src.trim()) {
+    setStatus("Nothing to obfuscate — paste some code first.", "err");
+    return;
+  }
+
+  runBtn.disabled = true;
+  setStatus("Working…");
+
+  // yield to the browser so the button state paints
+  setTimeout(() => {
+    try {
+      const result = obfuscate(src, {
+        rename:        $("optRename").checked,
+        encodeStrings: $("optStrings").checked,
+        encodeNumbers: $("optNumbers").checked,
+        stripComments: $("optComments").checked,
+        insertJunk:    $("optJunk").checked
+      });
+
+      outputEl.value = result;
+      hasOutput = true;
+      downloadBtn.disabled = false;
+      copyBtn.disabled = false;
+
+      const pct = src.length
+        ? Math.round((result.length / src.length) * 100)
+        : 100;
+      setStatus(`Done — ${src.length} → ${result.length} bytes (${pct}% of original)`, "ok");
+    } catch (err) {
+      console.error(err);
+      setStatus("Error: " + (err && err.message ? err.message : String(err)), "err");
+    } finally {
+      runBtn.disabled = false;
+    }
+  }, 10);
+}
+
+runBtn.addEventListener("click", run);
+
+/* --- download --- */
+downloadBtn.addEventListener("click", () => {
+  if (!hasOutput) return;
+  let name = (outNameEl.value || "").trim() || "obfuscated.lua";
+  if (!/\.[A-Za-z0-9]+$/.test(name)) name += ".lua";
+
+  const blob = new Blob([outputEl.value], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+
+  setStatus(`Downloaded ${name}`, "ok");
+});
+
+/* --- copy --- */
+copyBtn.addEventListener("click", async () => {
+  if (!hasOutput) return;
+  try {
+    await navigator.clipboard.writeText(outputEl.value);
+    setStatus("Output copied to clipboard.", "ok");
+  } catch {
+    outputEl.select();
+    document.execCommand("copy");
+    setStatus("Output copied to clipboard.", "ok");
+  }
+});
+
+/* --- clear --- */
+clearBtn.addEventListener("click", () => {
+  inputEl.value = "";
+  outputEl.value = "";
+  hasOutput = false;
+  downloadBtn.disabled = true;
+  copyBtn.disabled = true;
+  outNameEl.value = "obfuscated.lua";
+  setStatus("");
+  inputEl.focus();
+});
+
+/* --- keyboard shortcut: Ctrl/Cmd + Enter --- */
+document.addEventListener("keydown", e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+    e.preventDefault();
+    run();
+  }
+});
+
+/* --- tab key inserts a tab in the editor instead of moving focus --- */
+inputEl.addEventListener("keydown", e => {
+  if (e.key === "Tab") {
+    e.preventDefault();
+    const s = inputEl.selectionStart, en = inputEl.selectionEnd;
+    inputEl.value = inputEl.value.slice(0, s) + "  " + inputEl.value.slice(en);
+    inputEl.selectionStart = inputEl.selectionEnd = s + 2;
+  }
+});
+</script>
+</body>
+</html>
